@@ -1,0 +1,42 @@
+{
+  "auth": {
+    "username": "alpesh",
+    "password": ""
+  },
+
+  "profile": {
+    "name": "Alpesh",
+    "currency": "INR"
+  },
+
+  "data": {
+    "balance": 0,
+    "monthly_income": 0,
+    "transactions": [
+      {
+        "id":"",
+        "type":"",
+        "title":"",
+        "amount":"",
+        "category":"",
+        "date":""
+      }
+    ]
+  },
+
+  "budget": {
+    "monthly_limit": 0,
+    "current_spent": 0,
+    "threshold_percent": 0,
+    "alert_sent": false,
+    "month": "2026-03"
+  },
+
+  "analytics": {
+    "monthly_summary": {}
+  },
+
+  "settings": {
+    "theme": "dark"
+  }
+}
