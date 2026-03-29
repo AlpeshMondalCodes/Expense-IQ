@@ -62,21 +62,30 @@ def check_user_exist(username_entry):
     username_entry.configure(border_color=border)
     
 def signupUser(username,password,parent):
+    from tkinter import messagebox
     from ui.get_preferences import get_preferences
     data=read_json("data/defaults.json")
-    auth=data["auth"]
+    auth=data.get("auth",{"username":"",
+                          "password":""})
     auth["username"]=username
     auth["password"]=password
     data["auth"]=auth
-    profile=data["profile"]
+    profile=data.get("profile",{"name":"",
+                                "currency":""})
     profile["name"]=username
 
     pref=get_preferences(parent)
-    data["profile"]["name"]=pref["name"]
-    data["profile"]["currency"]=pref["currency"]
-    data["budget"]["monthly_limit"]=pref["monthly_limit"]
-    data["budget"]["threshold_percent"]=pref["threshold_percent"]
-    data["settings"]["theme"]=pref["theme"]
+    try:
+        data["profile"]["name"]=pref.get("name","")
+        data["profile"]["currency"]=pref.get("currency","")
+        data["budget"]["monthly_limit"]=int(pref.get("monthly_limit",0))
+        data["budget"]["threshold_percent"]=int(pref.get("threshold_percent",0))
+        data["settings"]["theme"]=pref.get("theme","dark")
+    except AttributeError:
+        messagebox.showerror("Closed","The Application has been closed by the user without submitting data\nRestart")
+        parent.quit()
+        parent.destroy()
+        return
     write_json(f"data/users/{username}.json",data)
     return True
 

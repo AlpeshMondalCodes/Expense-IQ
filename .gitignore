@@ -3,3 +3,4 @@ BP
 data/users/*
 utils/__pychache__/*
 utils/__pychache__/
+ui/__pychache__/*

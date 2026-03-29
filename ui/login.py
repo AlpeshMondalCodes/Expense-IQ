@@ -2,7 +2,7 @@ import customtkinter as ctk
 from tkinter import ttk,messagebox
 from PIL import Image
 import json
-from ui.theme import DARK,LIGHT
+from ui.theme import *
 from utils.file_handler import get_user,check_user_exist,signupUser
 from ui.main_ui import main_ui
 
@@ -114,7 +114,7 @@ def login_window(on_login):
     for i in range(2,len(users)+2):
         LoginFrame.rowconfigure(i-1,weight=1,uniform="a")
         ctk.CTkLabel(LoginFrame,text=users[i-2],font=("Arial",14)).grid(row=i,column=0,pady=10)
-        ctk.CTkButton(LoginFrame,text="Login",font=("Arial",14),fg_color="#89b4fa",hover_color="#74c7ec",text_color=(LIGHT["text"],DARK["text"]),command=lambda u=users[i-2]:on_click(u) ).grid(row=i,column=1,pady=10)
+        ctk.CTkButton(LoginFrame,text="Login",font=("Arial",14,"bold"),fg_color=BLUE_BORDER,hover_color=INFO,text_color="#4c4f69",command=lambda u=users[i-2]:on_click(u) ).grid(row=i,column=1,pady=10)
     
     ctk.CTkButton(loginTab,text="Doesn't have an account? Sign Up",font=("Arial",11),text_color=DARK["subtext"],fg_color=DARK["frame"],border_color=DARK["frame"],hover_color=DARK["frame"],cursor="hand2",corner_radius=5,border_width=0,command=lambda:notebook.set("     Signup     ")).pack(side="bottom",fill="x")
 

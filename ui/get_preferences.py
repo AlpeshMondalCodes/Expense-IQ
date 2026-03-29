@@ -11,6 +11,7 @@ ACCENT_HOVER = "#4752C4" # darker hover
 ACCENT_PRESSED = "#3c45a5"
 GREEN = "#a6e3a1"
 BORDER = "#7f849c"
+DANGER  = "#f38ba8"
 
 
 def centered_window(parent, width, height):
@@ -100,8 +101,15 @@ def get_preferences(parent):
     def go_next():
         nonlocal current_index
         answer=entry.get()
-        if answer!="" and answer!=" ":
+        if answer!="" and answer!=" " and current_index==0:
             data[keys[current_index]]=answer
+        elif answer!="" and answer!=" " and current_index>0:
+            try:
+                number=int(answer)
+            except ValueError:
+                title.configure(text="Provide a number",text_color=DANGER)
+                window.after(2000,lambda: title.configure(text=questions[current_index],text_color=TEXT))
+                return
         else:
             title.configure(text="Don't leave the entry field empty")
 
@@ -148,3 +156,4 @@ def get_preferences(parent):
     parent.wait_window(window)
     return pref
 
+#prefer rewriting newer logic using correctindex and if to control widgets inside one single func
