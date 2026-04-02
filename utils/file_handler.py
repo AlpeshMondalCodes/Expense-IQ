@@ -1,6 +1,7 @@
 import json
 import os
 from ui.theme import *
+import json
 
 def get_user():
     usernames=os.listdir("data/users")
@@ -9,8 +10,6 @@ def get_user():
         if sorting.endswith(".json"):
             users.append((sorting[:-5]))
     return users
-
-import json
 
 def read_json(path):
     with open(path, "r") as f:
@@ -89,6 +88,27 @@ def signupUser(username,password,parent):
     write_json(f"data/users/{username}.json",data)
     return True
 
+def update_password(user,password):
+    from tkinter import messagebox
+    path=f"data/users/{user}.json"
+    data=read_json(path)
+    data["auth"]["password"]=password
+    write_json(path,data)
+    messagebox.showinfo("Success","Password updated successfully.")
 
+def reset_userdata(username):
+    data=open_user_json(username)
+    default=read_json("data/defaults.json")
+    default["auth"]=data["auth"]
+    default["profile"]=data["profile"]
+    default["budget"]["monthly_limit"]=data["budget"]["monthly_limit"]
+    default["budget"]["threshold_percent"]=data["budget"]["threshold_percent"]
+    default["settings"]["theme"]=data["settings"]["theme"]
+    write_json(f"data/users/{username}.json",default)
 
+def delete(username):
+    try:
+        os.remove(f"data/users/{username}.json")
+    except:
+        pass
     

@@ -26,6 +26,7 @@ def get_preferences(parent):
     pref=None
     ctk.set_appearance_mode("dark")
     window = ctk.CTkToplevel(parent)
+    window.focus()
     window.title("Provide Data for your Account")
     centered_window(window, 1000, 400)
     window.resizable(False, False)
