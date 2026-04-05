@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from ui.theme import *
-from utils.file_handler import read_json,write_json,update_password,reset_userdata,delete
+from utils.file_handler import read_json,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
 from utils.date_calculator import *
 from tkinter import messagebox
 
@@ -34,7 +34,7 @@ def fill_topbar(username,topbar):
     welcome_lbl.pack( side="left",ipady=5)
     balance_lbl.pack( side="left", padx=10,ipady=5)
 
-def Dashboard(content_frame):
+def Dashboard(content_frame,username):
     clear_content(content_frame)
     expense_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"])
     expense_frame.place(relwidth=0.475,relheight=0.475,relx=0.025,y=20)
@@ -46,7 +46,86 @@ def Dashboard(content_frame):
 
     transaction_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"])
     transaction_frame.place(relwidth=0.95,relheight=0.475,relx=0.025,rely=0.5)
-    ctk.CTkLabel(transaction_frame,text="Transaction History Frame",fg_color="yellow").pack(expand=True,fill="both")
+    user_json=open_user_json(username)
+    transactions=user_json["data"]["transactions"]
+    if transactions==[{}] or not transactions or all(not t for t in transactions):
+        ctk.CTkLabel(transaction_frame,text="No Transactions").place(anchor="center",relx=0.5,rely=0.5)
+    
+def transactions_tab(content_frame,user):
+    clear_content(content_frame)
+    data=open_user_json(user)
+    transactions=data["data"]["transactions"]
+
+    rows = len(transactions)
+    table_frame=ctk.CTkScrollableFrame(content_frame)
+    table_frame.pack(expand=True,fill="both")
+    table_frame.rowconfigure(rows,uniform="a")
+    table_frame.columnconfigure(0,weight=1)
+    table_frame.columnconfigure(1,weight=4)
+    table_frame.columnconfigure(2,weight=3)
+    table_frame.columnconfigure(3,weight=2)
+    table_frame.columnconfigure(4,weight=1)
+
+    for i in range(rows):
+        txn = transactions[i]
+        if txn["type"]=="expense":
+            color=LOSS_COLOR
+        else:
+            color=GAIN_COLOR
+
+        ctk.CTkLabel(table_frame, text=txn["id"]).grid(row=i, column=0)
+        ctk.CTkLabel(table_frame, text=txn["title"]).grid(row=i, column=1)
+        ctk.CTkLabel(table_frame, text=txn["amount"],text_color=color).grid(row=i, column=2)
+        ctk.CTkLabel(table_frame, text=txn["date"]).grid(row=i, column=3)
+    
+def budget_tab(content_frame,username):
+    clear_content(content_frame)
+    data=open_user_json(username)
+    budget_data=data["budget"]
+    monthly_income=data["data"]["monthly_income"]
+    balance=data["data"]["balance"]
+    monthly_limit=budget_data["monthly_limit"]
+    spent=budget_data["current_spent"]
+    currency=data["profile"]["currency"]
+    saving=data["analytics"]["monthly_summary"]["savings"]
+
+    frame = ctk.CTkFrame(content_frame, fg_color="transparent")
+    frame.pack(side="left", padx=10, pady=10,fill="x",anchor="nw")
+
+    # budget coloring
+    if spent > monthly_limit:
+        spent_color = DANGER
+    elif spent > monthly_limit * 0.7:
+        spent_color = WARNING
+    else:
+        spent_color = SUCCESS
+
+    title=ctk.CTkLabel(frame,text_color=DARK["text"],text="Monthly Overveiw",font=("Arial",24,"bold"))
+    budget=ctk.CTkLabel(frame,text_color=DARK["subtext"],text=f"Monthly Budget:{currency} {monthly_limit}",font=("Arial",20))
+    income=ctk.CTkLabel(frame,text_color=DARK["subtext"],text=f"Monthly Income:{currency} {monthly_income}",font=("Arial",20))
+    spent_title=ctk.CTkLabel(frame,text=f"Monthly Spent:{currency} {spent}",font=("Arial",20),text_color=spent_color)
+    balance_lbl=ctk.CTkLabel(frame,text_color=DARK["subtext"],text=f"Monthly Balance:{currency} {balance}",font=("Arial",20))
+
+    frame2=ctk.CTkFrame(content_frame, fg_color="transparent")
+    frame2.pack(padx=10, pady=10,fill="both",expand=True,side="right",anchor="ne")
+
+    #progress
+    expense_progress=ctk.CTkProgressBar(frame2,corner_radius=5,progress_color=spent_color,fg_color=DARK["bg"])
+    expense_progress.set(spent/monthly_limit)
+
+    saving_lbl=ctk.CTkLabel(frame2,text=f"Savings:{currency} {saving}",corner_radius=10,fg_color=DARK["card"])
+
+    #layout
+    title.pack(pady=15,padx=10)
+    budget.pack(pady=15,padx=10)
+    spent_title.pack(pady=15,padx=10)
+    balance_lbl.pack(pady=15,padx=10)
+
+    expense_progress.pack(anchor="n",ipadx=5,ipady=5,padx=10,pady=10,fill="x")
+    saving_lbl.pack(anchor="n",ipadx=5,ipady=5,padx=10,pady=10)
+
+    
+    
 
 def setting(content_frame, username, current_theme="dark"):
     clear_content(content_frame)
@@ -56,7 +135,10 @@ def setting(content_frame, username, current_theme="dark"):
     THEME = DARK if current_theme == "dark" else LIGHT
 
     # ===== Container Card =====
-    theme_card = ctk.CTkFrame(content_frame,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
+    top_left_card=ctk.CTkFrame(content_frame,bg_color="transparent",fg_color="transparent")
+    top_left_card.pack(anchor="nw")
+
+    theme_card = ctk.CTkFrame(top_left_card,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
     theme_card.pack(side="left",padx=30, pady=30,anchor="nw")
 
     # ===== Title =====
@@ -99,7 +181,7 @@ def setting(content_frame, username, current_theme="dark"):
 
     #-------------------------------------------------------------------------------------------------------------------
 
-    currency_card = ctk.CTkFrame(content_frame,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
+    currency_card = ctk.CTkFrame(top_left_card,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
     currency_card.pack(side="left",padx=(0,30), pady=30,anchor="nw")
     # ===== Title =====
     title2 = ctk.CTkLabel(currency_card,text="Currency",font=("Segoe UI", 26, "bold"),text_color=THEME["text"])
@@ -133,7 +215,9 @@ def setting(content_frame, username, current_theme="dark"):
     currency_menu.set(data["profile"]["currency"])
 
     #------------------------------------------------------------------------------------------------------------------------------------------------------
-    password_card = ctk.CTkFrame(content_frame,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
+    password_Frame=ctk.CTkFrame(content_frame,bg_color="transparent",fg_color="transparent")
+    password_Frame.pack(anchor="nw",padx=30)
+    password_card = ctk.CTkFrame(password_Frame,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
     password_card.pack(side="left",padx=(0,30), pady=30,anchor="nw")
     # ===== Title =====
     title3 = ctk.CTkLabel(password_card,text="Change Password",font=("Segoe UI", 26, "bold"),text_color=THEME["text"])
@@ -172,6 +256,10 @@ def setting(content_frame, username, current_theme="dark"):
     update_btn.pack(padx=20, pady=(0, 20))
 
     # _____________________________________________________________________________________________________________________________________________
+
+    button_frame=ctk.CTkFrame(content_frame,fg_color="transparent")
+    button_frame.place(relx=1,rely=0,x=-30,y=30,anchor="ne")
+
     def reset():
         status=messagebox.askyesno(title="Are you sure?",message="All your transaction histories and customizations will be removed and cannot be recovered.\nAre you sure you want to reset your data?\nNote:The 5 preferences asked at account creation will not be cleared.")
         if status:
@@ -180,7 +268,7 @@ def setting(content_frame, username, current_theme="dark"):
             messagebox.showinfo("Deletion Completed",msg)
 
     reset_btn=ctk.CTkButton(
-        content_frame,
+        button_frame,
         text="RESET",
         command=reset,
         width=150,
@@ -192,7 +280,7 @@ def setting(content_frame, username, current_theme="dark"):
         border_color=RED_BORDER,
         text_color=THEME["text"]
     )
-    reset_btn.place(anchor="sw",relx=0,rely=1,x=20,y=-20)
+    reset_btn.pack(pady=10)
 
     def deletion():
         status=messagebox.askyesno("Are you sure?","This action will delete all your data and it is not recoverable.\nWould you like to proceed?")
@@ -201,7 +289,7 @@ def setting(content_frame, username, current_theme="dark"):
             quit()
 
     delete_btn=ctk.CTkButton(
-        content_frame,
+        button_frame,
         text="DELETE",
         command=deletion,
         width=150,
@@ -213,9 +301,34 @@ def setting(content_frame, username, current_theme="dark"):
         border_color=DANGER,
         text_color=THEME["text"]
     )
-    delete_btn.place(anchor="sw",relx=0.15,rely=1,x=20,y=-20)
+    delete_btn.pack(pady=10)
 
-def main_ui(username,theme,login):
+    def forgot():
+        forgot_user()
+        messagebox.showinfo("Done","Now the user will not be automatically logged in")
+        forgot_btn.configure(state="disabled")
+
+    forgot_btn=ctk.CTkButton(button_frame,text_color="#000000",text="Show Login Window",width=150,height=45,corner_radius=10,fg_color=WARNING,hover_color="orange",border_color=YELLOW_BORDER,command=forgot)
+    forgot_btn.pack(pady=10)
+
+    if get_remember_default()["remember"]==1:
+        forgot_btn.configure(state="enabled")
+    else:
+        forgot_btn.configure(state="disabled")
+
+
+    #########################################################################################################################################################3
+
+def main_ui(username,theme,login,remember):
+    ###3 remember me feat
+    data=get_remember_default()
+    data["remember"]=remember
+    if remember:
+        data["username"]=username
+    else:
+        data["username"]=""
+    write_json("data/app.json",data)
+################################################################3
     try:
         login.destroy()
     except:
@@ -224,7 +337,7 @@ def main_ui(username,theme,login):
     root=ctk.CTk()
     root.title("Expense IQ: Expend Conciously")
     root.configure(fg_color=(LIGHT["bg"],DARK["bg"]))
-    root.minsize(1000,560)
+    root.minsize(1200,560)
     
 
     centered_window(root,1280,720)
@@ -236,9 +349,9 @@ def main_ui(username,theme,login):
     #------ SIDEBAR BUTTONS ------------------------------------------------------------------------------
     today=ctk.CTkLabel(sidebar,text=str(get_today()),font=("Segoe UI",20,"bold"),fg_color="transparent")
     day=ctk.CTkLabel(sidebar,text=str(get_weekday_formatted()),font=("Segoe UI",14,"bold"),fg_color="transparent")
-    dashboard=ctk.CTkButton(sidebar,text="Dashboard",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:Dashboard(content_frame))
-    transaction=ctk.CTkButton(sidebar,text="Transaction",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45)
-    budget=ctk.CTkButton(sidebar,text="Budget",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45)
+    dashboard=ctk.CTkButton(sidebar,text="Dashboard",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:Dashboard(content_frame,username))
+    transaction=ctk.CTkButton(sidebar,text="Transaction",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:transactions_tab(content_frame,username))
+    budget=ctk.CTkButton(sidebar,text="Budget",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:budget_tab(content_frame,username))
     analytics=ctk.CTkButton(sidebar,text="Analytics",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45)
     settings=ctk.CTkButton(sidebar,text="Settings",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:setting(content_frame,username))
     logout=ctk.CTkButton(sidebar,text="Logout",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DANGER,corner_radius=10,border_color=RED_BORDER,border_width=1,height=45,command=lambda:[root.quit(),root.after(10,quit())]) # used quit instead of destroy to quit safely
@@ -261,5 +374,6 @@ def main_ui(username,theme,login):
     content_frame=ctk.CTkFrame(root,border_color=BLUE_BORDER,fg_color=(LIGHT["frame"],DARK["frame"]))
     content_frame.pack(expand=True,fill="both",padx=20,pady=20)
 
+    Dashboard(content_frame,username)
 
     root.mainloop()

@@ -1,11 +1,11 @@
 {
   "auth": {
-    "username": "alpesh",
+    "username": "",
     "password": ""
   },
 
   "profile": {
-    "name": "Alpesh",
+    "name": "",
     "currency": "INR"
   },
 
@@ -13,14 +13,7 @@
     "balance": 0,
     "monthly_income": 0,
     "transactions": [
-      {
-        "id":"",
-        "type":"",
-        "title":"",
-        "amount":"",
-        "category":"",
-        "date":""
-      }
+      {}
     ]
   },
 

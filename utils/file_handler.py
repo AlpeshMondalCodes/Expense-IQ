@@ -112,3 +112,12 @@ def delete(username):
     except:
         pass
     
+def get_remember_default():
+    data=read_json("data/app.json")
+    return data
+
+def forgot_user():
+    data=read_json("data/app.json")
+    data["remember"]=0
+    data["username"]=""
+    write_json("data/app.json",data)

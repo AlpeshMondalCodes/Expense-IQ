@@ -37,3 +37,6 @@ GREEN_BORDER = "#94d3a2"
 RED_BORDER   = "#e07a9b"
 BLUE_BORDER  = "#74a8f0"
 YELLOW_BORDER= "#e6cf9c"
+
+GAIN_COLOR = "#a6e3a1"   # Catppuccin green
+LOSS_COLOR = "#f38ba8"   # Catppuccin red

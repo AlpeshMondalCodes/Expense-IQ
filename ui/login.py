@@ -3,7 +3,7 @@ from tkinter import ttk,messagebox
 from PIL import Image
 import json
 from ui.theme import *
-from utils.file_handler import get_user,check_user_exist,signupUser
+from utils.file_handler import get_user,check_user_exist,signupUser,open_user_json,get_remember_default
 from ui.main_ui import main_ui
 
 def centered_window(parent,width,height):
@@ -28,7 +28,8 @@ def login_window(on_login):
     
     def on_click(username):
         
-        on_login(username,root,current_mode)
+        if (on_login(username,root,current_mode,remeber_status.get()))==False:
+            messagebox.showerror("Wrong Credentials",f"The enterred password for the user({username}) is wrong")
 
     # ctk.set_appearance_mode("light")
     def changemode():
@@ -105,6 +106,10 @@ def login_window(on_login):
     LoginFrame.columnconfigure(0,weight=1)
     LoginFrame.columnconfigure(1,weight=1)
     users=get_user()
+    usernames=[]
+    for i in users:
+        data=open_user_json(i)
+        usernames.append(data["profile"]["name"])
     LoginFrame.rowconfigure(0,weight=1,uniform="a")
     title1=ctk.CTkLabel(LoginFrame,text="User Name",font=("Arial",16,"bold"),text_color=(LIGHT["text"],DARK["text"]))
     title1.grid(row=0,column=0)
@@ -113,10 +118,19 @@ def login_window(on_login):
     user_label_list=[]
     for i in range(2,len(users)+2):
         LoginFrame.rowconfigure(i-1,weight=1,uniform="a")
-        ctk.CTkLabel(LoginFrame,text=users[i-2],font=("Arial",14)).grid(row=i,column=0,pady=10)
+        ctk.CTkLabel(LoginFrame,text=usernames[i-2],font=("Arial",14)).grid(row=i,column=0,pady=10)
         ctk.CTkButton(LoginFrame,text="Login",font=("Arial",14,"bold"),fg_color=BLUE_BORDER,hover_color=INFO,text_color="#4c4f69",command=lambda u=users[i-2]:on_click(u) ).grid(row=i,column=1,pady=10)
-    
-    ctk.CTkButton(loginTab,text="Doesn't have an account? Sign Up",font=("Arial",11),text_color=DARK["subtext"],fg_color=DARK["frame"],border_color=DARK["frame"],hover_color=DARK["frame"],cursor="hand2",corner_radius=5,border_width=0,command=lambda:notebook.set("     Signup     ")).pack(side="bottom",fill="x")
+
+    bottom_frame=ctk.CTkFrame(loginTab,fg_color=DARK["frame"],bg_color="transparent",corner_radius=0)
+    bottom_frame.pack(side="bottom",fill="x",ipady=5)
+
+    remeber_status=ctk.IntVar(value=get_remember_default()["remember"])
+
+    remeber_me=ctk.CTkCheckBox(bottom_frame,text="Remeber Me",variable=remeber_status,offvalue=0,onvalue=1,bg_color=DARK["frame"],cursor="hand2")
+
+    #bottom layout    
+    ctk.CTkButton(bottom_frame,text="Doesn't have an account? Sign Up",font=("Arial",11),text_color=DARK["subtext"],fg_color=DARK["frame"],border_color=DARK["frame"],hover_color=DARK["frame"],cursor="hand2",corner_radius=5,border_width=0,command=lambda:notebook.set("     Signup     ")).pack(side="bottom",fill="x")
+    remeber_me.pack(side="bottom")
 
 
     ## Signup ############################################################################################################################
