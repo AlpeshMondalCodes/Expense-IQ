@@ -1,4 +1,15 @@
 {
-    "remember": 1,
-    "username": "alpesh"
+    "remember": 0,
+    "username": "",
+    "categories": [
+        "Food",
+        "Transport",
+        "Entertainment",
+        "Utilities",
+        "Health",
+        "Education",
+        "Shopping",
+        "Travel",
+        "Other"
+    ]
 }

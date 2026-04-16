@@ -18,7 +18,7 @@
   },
 
   "budget": {
-    "monthly_limit": 0,
+    "monthly_limit": 10000,
     "current_spent": 0,
     "threshold_percent": 0,
     "alert_sent": false,
@@ -26,7 +26,11 @@
   },
 
   "analytics": {
-    "monthly_summary": {}
+    "monthly_summary": {
+      "income":0,
+      "expense":0,
+      "savings":0
+    }
   },
 
   "settings": {

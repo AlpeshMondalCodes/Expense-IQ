@@ -19,11 +19,8 @@ def on_login(username,window,theme,remember):
     else:
         return False
 
-if ensure_files()==False:
-    messagebox.showerror("No File Exists","Some of the required files are missing")
-    quit()
-
 app_data=get_remember_default()
+
 def login_remembered_user():
     username=app_data["username"]
     theme=open_user_json(username)["settings"]["theme"]
@@ -32,5 +29,11 @@ def login_remembered_user():
 
 if app_data["remember"]==1:
     login_remembered_user()
+    if ensure_files()==False:
+        messagebox.showerror("No File Exists","Some of the required files are missing")
+        quit()
 else:
     login_window(on_login)
+    if ensure_files()==False:
+        messagebox.showerror("No File Exists","Some of the required files are missing")
+        quit()

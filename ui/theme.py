@@ -1,8 +1,8 @@
 # theme.py
 # Catppuccin surfaces + custom purple branding
 
-PRIMARY = "#b77dfe"
-PRIMARY_HOVER = "#9d5cf7"
+PRIMARY_HOVER = "#b77dfe"
+PRIMARY = "#9d5cf7"
 
 # ===== DARK THEME =====
 DARK = {

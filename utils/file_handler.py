@@ -114,6 +114,11 @@ def delete(username):
     
 def get_remember_default():
     data=read_json("data/app.json")
+    users=get_user()
+    if data["username"] not in users:
+        data["username"]=""
+        data["remember"]=0
+        write_json("data/app.json",data)
     return data
 
 def forgot_user():
@@ -121,3 +126,7 @@ def forgot_user():
     data["remember"]=0
     data["username"]=""
     write_json("data/app.json",data)
+
+def get_category_values():
+    data=read_json("data/app.json")
+    return data["categories"]

@@ -193,10 +193,10 @@ def login_window(on_login):
     conform_password_entry.bind('<FocusOut>',lambda event:fill_entry(conform_password_entry,"Conform Password"))
     conform_password_entry.bind('<KeyPress>',lambda event:check_match())
 
-    def signUp(username_entry,password_entry):
-        done=signupUser(username_entry,password_entry,root)
+    def signUp(username,password):
+        done=signupUser(username,password,root)
         if done:
-            main_ui(username_entry,"dark",root)
+            main_ui(username,"dark",root,remeber_status.get())
 
     signUpBtn=ctk.CTkButton(SignupFrame,text="Sign UP",text_color="#000000",text_color_disabled="#4c4f69",fg_color=LIGHT["primary"],hover_color="#74a8f0",cursor="hand2",corner_radius=5,width=200,height=30,border_width=2,font=("Arial",14,"bold"),state="disabled",command=lambda:signUp(username_entry.get(),password_entry.get()))
 
