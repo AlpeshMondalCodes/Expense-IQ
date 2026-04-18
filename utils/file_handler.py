@@ -1,7 +1,7 @@
 import json
 import os
+from utils.date_calculator import get_today
 from ui.theme import *
-import json
 
 def get_user():
     usernames=os.listdir("data/users")
@@ -130,3 +130,49 @@ def forgot_user():
 def get_category_values():
     data=read_json("data/app.json")
     return data["categories"]
+
+def save_transaction(user,title,amount,type,category):
+    data=open_user_json(user)
+    transaction_data=data["data"]["transactions"]
+
+    if transaction_data==[]:
+        latest_id=0
+    else:
+        latest_tansaction=transaction_data[len(transaction_data)-1]
+        latest_id=latest_tansaction["id"]
+
+    id_current=latest_id+1
+    today=str(get_today())
+
+    transaction={
+        "id":id_current,
+        "date":today,
+        "type":type,
+        "category":category,
+        "amount":amount,
+        "title":title,
+    }
+    print(transaction_data)
+    transaction_data.append(transaction)
+    data["data"]["transactions"]=transaction_data
+
+    #after transaction processing (e.g. balance update etc)
+    print("Balance:",data["data"]["balance"],"Amount:",amount)
+    if type=="Expense":
+        data["data"]["balance"]=data["data"]["balance"]-amount
+        data["budget"]["current_spent"]=data["budget"]["current_spent"]+amount
+        data["analytics"]["monthly_summary"]["expense"]=data["analytics"]["monthly_summary"]["expense"]+amount
+    else:
+        data["data"]["balance"]=data["data"]["balance"]+amount
+
+    write_json(f"data/users/{user}.json",data)
+
+def get_id(user):
+    data=open_user_json(user)
+    transaction_data=data["data"]["transactions"]
+
+    if transaction_data==[]:
+        latest_id=0
+    else:
+        latest_tansaction=transaction_data[len(transaction_data)-1]
+    return latest_tansaction["id"]

@@ -4,6 +4,7 @@ from ui.theme import *
 from utils.file_handler import read_json,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
 from utils.date_calculator import *
 from tkinter import messagebox
+from tkinter.ttk import Treeview
 
 def clear_content(frame):
     for widget in frame.winfo_children():
@@ -52,7 +53,7 @@ def Dashboard(content_frame,username):
     if transactions==[{}] or not transactions or all(not t for t in transactions):
         ctk.CTkLabel(transaction_frame,text="No Transactions").place(anchor="center",relx=0.5,rely=0.5)
     
-def transactions_tab(content_frame,user,root):
+def transactions_tab(content_frame,user):
     clear_content(content_frame)
     data=open_user_json(user)
     transactions=data["data"]["transactions"]
@@ -73,7 +74,7 @@ def transactions_tab(content_frame,user,root):
 
         for i in range(rows):
             txn = transactions[i]
-            if txn["type"]=="expense":
+            if txn["type"]=="Expense":
                 color=LOSS_COLOR
             else:
                 color=GAIN_COLOR
@@ -83,7 +84,7 @@ def transactions_tab(content_frame,user,root):
             ctk.CTkLabel(table_frame, text=txn["amount"],text_color=color).grid(row=i, column=2)
             ctk.CTkLabel(table_frame, text=txn["date"]).grid(row=i, column=3)
         
-    new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=300,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(root))
+    new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=300,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(table_frame,user))
     new_btn.place(rely=1,relx=1,x=-50,y=-10,anchor="se")
     
 def budget_tab(content_frame,username):
@@ -358,7 +359,7 @@ def main_ui(username,theme,login,remember):
     today=ctk.CTkLabel(sidebar,text=str(get_today()),font=("Segoe UI",20,"bold"),fg_color="transparent")
     day=ctk.CTkLabel(sidebar,text=str(get_weekday_formatted()),font=("Segoe UI",14,"bold"),fg_color="transparent")
     dashboard=ctk.CTkButton(sidebar,text="Dashboard",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:Dashboard(content_frame,username))
-    transaction=ctk.CTkButton(sidebar,text="Transaction",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:transactions_tab(content_frame,username,root))
+    transaction=ctk.CTkButton(sidebar,text="Transaction",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:transactions_tab(content_frame,username))
     budget=ctk.CTkButton(sidebar,text="Budget",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:budget_tab(content_frame,username))
     analytics=ctk.CTkButton(sidebar,text="Analytics",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45)
     settings=ctk.CTkButton(sidebar,text="Settings",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:setting(content_frame,username))

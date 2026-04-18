@@ -1,6 +1,8 @@
 import customtkinter as ctk
 from ui.theme import *
-from utils.file_handler import get_category_values
+from utils.file_handler import get_category_values,save_transaction,get_id
+from utils.date_calculator import get_today
+from tkinter import messagebox
 # ---------------- COLORS ----------------
 BG = "#181825"
 SURFACE = "#1e1e2e"
@@ -22,7 +24,21 @@ def centered_window(parent, width, height):
     parent.geometry(f"{width}x{height}+{x}+{y}")
     parent.resizable(False,False)
 
-def new_transaction(widget):
+def update_table(frame,ids,title,amount,date,type_item):
+    frame.rowconfigure(ids,uniform="a")
+
+    if type_item=="Expense":
+        color=LOSS_COLOR
+    else:
+        color=GAIN_COLOR
+    ctk.CTkLabel(frame, text=ids).grid(row=ids-1, column=0)
+    ctk.CTkLabel(frame, text=title).grid(row=ids-1, column=1)
+    ctk.CTkLabel(frame, text=amount,text_color=color).grid(row=ids-1, column=2)
+    ctk.CTkLabel(frame, text=date).grid(row=ids-1, column=3)
+
+    #rows start from 0 and ids start from 1 so rows=ids-1
+
+def new_transaction(table,user):
     window=ctk.CTk()
     window.title("Provide Data for your Account")
     centered_window(window, 800, 300)
@@ -32,14 +48,27 @@ def new_transaction(widget):
     window.attributes("-topmost", True)
     window.bind('<Escape>',lambda _:window.destroy())
 
-    def validate_int(event, entry):
+    def validate_int(event):
         if event.char.isdigit() or event.keysym in ['BackSpace', 'Delete', 'Left', 'Right',"Escape",'Control','Alt']:
             return
         else:
             return "break" #how does break prevents input of chars? Ans: In Tkinter, returning the string "break" from an event handler prevents the default behavior associated with that event. In this case, when a non-digit character is pressed, the event handler returns "break", which tells Tkinter to stop processing the event further. This means that the character will not be inserted into the entry widget, effectively preventing the input of non-digit characters.
+        
+    def new():
+        title=title_entry.get()
+        amount=int(amount_entry.get())
+        type=type_value.get()
 
+        category="Salary"
 
-    ctk.CTkLabel(window,text="New Transaction",font=("Bahnschrift SemiBold", 36, "bold"),text_color=TEXT).pack(side="top",anchor="center")
+        if type=="Expense":
+            category=Category_entry.get()
+        print("Phase 1: new_transaction.py")
+        save_transaction(user,title,amount,type,category)
+        window.destroy()
+        update_table(table,get_id(user),title,amount,str(get_today()),type)
+        messagebox.showinfo("Successfull Transaction",f"The transaction for title :{title} has successfully added to your data.")
+
 
     def color_type():
         txt=type_value.get()
@@ -50,6 +79,7 @@ def new_transaction(widget):
             type_btn.configure(selected_color=SUCCESS)
             Category_entry.configure(state="disabled")
 
+    ctk.CTkLabel(window,text="New Transaction",font=("Bahnschrift SemiBold", 36, "bold"),text_color=TEXT).pack(side="top",anchor="center")
 
     title_frame=ctk.CTkFrame(window,fg_color=DARK["card"],width=500)
     title_frame.pack(side="left",expand=True,fill="both",padx=20,pady=20)
@@ -63,12 +93,12 @@ def new_transaction(widget):
     amount_entry=ctk.CTkEntry(title_frame,placeholder_text="Amount",fg_color=DARK["bg"],font=("Cascadia Code",20),border_color=BLUE_BORDER)
     amount_entry.pack(fill="x",padx=(10,20))
 
-    amount_entry.bind('<KeyPress>',lambda e : validate_int(e,amount_entry))
+    amount_entry.bind('<KeyPress>',lambda e : validate_int(e))
 
     other_inputs=ctk.CTkFrame(window,fg_color=DARK["card"])
     other_inputs.pack(side="left",expand=True,fill="both",padx=(0,20),pady=20)
 
-    type_value = ctk.StringVar(value="Expense")
+    type_value = ctk.StringVar()
 
     type_btn = ctk.CTkSegmentedButton(
         other_inputs,
@@ -89,7 +119,7 @@ def new_transaction(widget):
     Category_entry=ctk.CTkOptionMenu(other_inputs,values=get_category_values(),fg_color=DARK["bg"],font=("Cascadia Code",20))
     Category_entry.pack(fill="x",padx=(10,20))
 
-    cnf_btn=ctk.CTkButton(other_inputs,text="Conform",fg_color=PRIMARY,hover_color=PRIMARY_HOVER,text_color=DARK["text"],corner_radius=15,command=lambda:print(type_value.get()))
+    cnf_btn=ctk.CTkButton(other_inputs,text="Conform",fg_color=PRIMARY,hover_color=PRIMARY_HOVER,text_color=DARK["text"],corner_radius=15,command=new)
     cnf_btn.pack(side="bottom",fill="x")
 
     window.mainloop()
