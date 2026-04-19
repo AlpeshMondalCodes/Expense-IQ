@@ -6,24 +6,26 @@ PRIMARY = "#9d5cf7"
 
 # ===== DARK THEME =====
 DARK = {
-    "bg": "#1e1e2e",       # Catppuccin base
+    "bg": "#1e1e2e",       # Catppuccin base (darkest)
     "frame": "#181825",    # mantle
     "card": "#313244",     # surface0
+    "card_hover": "#45475a",    # surface1 (between frame and border)
     "primary": PRIMARY,
     "primary_hover": PRIMARY_HOVER,
-    "text": "#cdd6f4",     # text
+    "text": "#cdd6f4",     # text (lightest)
     "subtext": "#a6adc8",  # subtext
     "border": "#585b70"    # surface2
 }
 
 # ===== LIGHT THEME =====
 LIGHT = {
-    "bg": "#eff1f5",       # base
+    "bg": "#eff1f5",       # base (lightest)
     "frame": "#e6e9ef",    # mantle
     "card": "#ccd0da",     # surface0
+    "card_hover": "#bcc0cc",    # surface1 (between card and border)
     "primary": PRIMARY,
     "primary_hover": PRIMARY_HOVER,
-    "text": "#4c4f69",     # text
+    "text": "#4c4f69",     # text (darkest)
     "subtext": "#6c6f85",  # subtext
     "border": "#9ca0b0"    # surface2
 }

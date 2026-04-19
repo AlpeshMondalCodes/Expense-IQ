@@ -9,3 +9,5 @@ tasks.txt
 /ui/__pycache__
 utils/__pycache__/file_handler.cpython-38.pyc
 *.pyc
+plan-transactionHoverSelect.prompt.md
+reason(main_ui.py - line 80).png

@@ -66,12 +66,27 @@ def transactions_tab(content_frame,user):
         table_frame=ctk.CTkScrollableFrame(content_frame,fg_color=DARK["card"])
         table_frame.pack(expand=True,fill="both")
         table_frame.rowconfigure(rows,uniform="a")
-        table_frame.columnconfigure(0,weight=1)
-        table_frame.columnconfigure(1,weight=4)
-        table_frame.columnconfigure(2,weight=3)
-        table_frame.columnconfigure(3,weight=2)
-        table_frame.columnconfigure(4,weight=1)
+        table_frame.columnconfigure(0,weight=1,uniform="a")
 
+        selected=None
+
+        def hover_item(e):
+            e.configure(fg_color=DARK["card_hover"])
+
+        def unhover_item(e):
+            e.configure(fg_color="transparent")
+
+        def select_item(e):
+            nonlocal selected
+            if selected==None:
+                selected=e
+            else:
+                selected.configure(border_color=DARK["card"])
+                selected=e
+            e.configure(border_color=PRIMARY)
+
+        # Table generation -------------------------------------------------------------------------------------------------------------
+        row_frame=[]
         for i in range(rows):
             txn = transactions[i]
             if txn["type"]=="Expense":
@@ -79,11 +94,29 @@ def transactions_tab(content_frame,user):
             else:
                 color=GAIN_COLOR
 
-            ctk.CTkLabel(table_frame, text=txn["id"]).grid(row=i, column=0)
-            ctk.CTkLabel(table_frame, text=txn["title"]).grid(row=i, column=1)
-            ctk.CTkLabel(table_frame, text=txn["amount"],text_color=color).grid(row=i, column=2)
-            ctk.CTkLabel(table_frame, text=txn["date"]).grid(row=i, column=3)
-        
+            row_frame.append(ctk.CTkFrame(table_frame,fg_color="transparent",border_width=1,border_color=DARK["card"])) #???? why append i should have used [i]=ctk.Frmae() ? "reason(main_ui.py - line 80).png"
+            row_frame[i].grid(row=i, column=0,columnspan=4, sticky="ew", padx=5, pady=5)
+
+            row_frame[i].columnconfigure(0,weight=1,uniform="a")
+            row_frame[i].columnconfigure(1,weight=4,uniform="a")
+            row_frame[i].columnconfigure(2,weight=3,uniform="a")
+            row_frame[i].columnconfigure(3,weight=2,uniform="a")
+            row_frame[i].columnconfigure(4,weight=3,uniform="a")
+            ctk.CTkLabel(row_frame[i], text=txn["id"]).grid(row=0, column=0, padx=5, pady=5)
+            ctk.CTkLabel(row_frame[i], text=txn["title"]).grid(row=0, column=1, padx=5, pady=5)
+            ctk.CTkLabel(row_frame[i], text=txn["amount"],text_color=color).grid(row=0, column=2, padx=5, pady=5)
+            ctk.CTkLabel(row_frame[i], text=txn["date"]).grid(row=0, column=3, padx=5, pady=5)
+            ctk.CTkLabel(row_frame[i], text=txn["category"]).grid(row=0, column=4, padx=5, pady=5)
+
+            row_frame[i].bind("<Enter>", lambda e,index=i: hover_item(row_frame[index]))
+            row_frame[i].bind("<Button-1>", lambda e,index=i: select_item(row_frame[index]))
+            row_frame[i].bind("<Leave>", lambda e,index=i: unhover_item(row_frame[index]))
+
+            for child in row_frame[i].winfo_children():
+                child.bind("<Enter>", lambda e,index=i: hover_item(row_frame[index]))
+                child.bind("<Button-1>", lambda e,index=i: select_item(row_frame[index]))
+                child.bind("<Leave>", lambda e,index=i: unhover_item(row_frame[index]))
+
     new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=300,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(table_frame,user))
     new_btn.place(rely=1,relx=1,x=-50,y=-10,anchor="se")
     

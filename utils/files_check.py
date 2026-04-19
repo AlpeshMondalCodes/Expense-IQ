@@ -77,6 +77,6 @@ def ensure_json_structure():
                             if sub_key not in data[key]:
                                 data[key][sub_key] = sub_val
         write_json(user_path, data)
-        #Credits for this func: ChatGPT
+        #Credits for this func: ChatGPT(missing data filled),GithubCopilot (corrupted files data loss prevention)
 
 ensure_json_structure()
