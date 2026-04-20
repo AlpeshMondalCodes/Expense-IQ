@@ -24,21 +24,10 @@ def centered_window(parent, width, height):
     parent.geometry(f"{width}x{height}+{x}+{y}")
     parent.resizable(False,False)
 
-def update_table(frame,ids,title,amount,date,type_item):
-    frame.rowconfigure(ids,uniform="a")
+def update_table(callback,content,user):
+    callback(content,user)
 
-    if type_item=="Expense":
-        color=LOSS_COLOR
-    else:
-        color=GAIN_COLOR
-    ctk.CTkLabel(frame, text=ids).grid(row=ids-1, column=0)
-    ctk.CTkLabel(frame, text=title).grid(row=ids-1, column=1)
-    ctk.CTkLabel(frame, text=amount,text_color=color).grid(row=ids-1, column=2)
-    ctk.CTkLabel(frame, text=date).grid(row=ids-1, column=3)
-
-    #rows start from 0 and ids start from 1 so rows=ids-1
-
-def new_transaction(table,user):
+def new_transaction(user,callback,content_frm):
     window=ctk.CTk()
     window.title("Provide Data for your Account")
     centered_window(window, 800, 300)
@@ -66,7 +55,7 @@ def new_transaction(table,user):
         print("Phase 1: new_transaction.py")
         save_transaction(user,title,amount,type,category)
         window.destroy()
-        update_table(table,get_id(user),title,amount,str(get_today()),type)
+        update_table(callback,content_frm,user)
         messagebox.showinfo("Successfull Transaction",f"The transaction for title :{title} has successfully added to your data.")
 
 
@@ -111,7 +100,7 @@ def new_transaction(table,user):
         unselected_hover_color=DARK["border"],
         text_color="white",
         corner_radius=8,
-        command=lambda _ :color_type(),
+        command=lambda _ :[color_type(),cnf_btn.configure(state="normal")],
     )
     type_btn.pack(in_=other_inputs, padx=15, pady=10,anchor="ne",fill="x")
 
@@ -119,7 +108,7 @@ def new_transaction(table,user):
     Category_entry=ctk.CTkOptionMenu(other_inputs,values=get_category_values(),fg_color=DARK["bg"],font=("Cascadia Code",20))
     Category_entry.pack(fill="x",padx=(10,20))
 
-    cnf_btn=ctk.CTkButton(other_inputs,text="Conform",fg_color=PRIMARY,hover_color=PRIMARY_HOVER,text_color=DARK["text"],corner_radius=15,command=new)
-    cnf_btn.pack(side="bottom",fill="x")
+    cnf_btn=ctk.CTkButton(other_inputs,text="Conform",fg_color=PRIMARY,hover_color=PRIMARY_HOVER,text_color=DARK["text"],corner_radius=15,command=new,state="disabled")
+    cnf_btn.pack(side="bottom",fill="x",padx=20,pady=10)
 
     window.mainloop()

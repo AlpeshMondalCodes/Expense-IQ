@@ -117,7 +117,7 @@ def transactions_tab(content_frame,user):
                 child.bind("<Button-1>", lambda e,index=i: select_item(row_frame[index]))
                 child.bind("<Leave>", lambda e,index=i: unhover_item(row_frame[index]))
 
-    new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=300,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(table_frame,user))
+    new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=200,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(user,Dashboard,content_frame))
     new_btn.place(rely=1,relx=1,x=-50,y=-10,anchor="se")
     
 def budget_tab(content_frame,username):

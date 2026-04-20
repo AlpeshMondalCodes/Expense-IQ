@@ -161,7 +161,7 @@ def save_transaction(user,title,amount,type,category):
     if type=="Expense":
         data["data"]["balance"]=data["data"]["balance"]-amount
         data["budget"]["current_spent"]=data["budget"]["current_spent"]+amount
-        data["analytics"]["monthly_summary"]["expense"]=data["analytics"]["monthly_summary"]["expense"]+amount
+        data["analytics"]["monthly_summary"]["Expense"]=data["analytics"]["monthly_summary"]["Expense"]+amount
     else:
         data["data"]["balance"]=data["data"]["balance"]+amount
 
