@@ -52,7 +52,6 @@ def new_transaction(user,callback,content_frm):
 
         if type=="Expense":
             category=Category_entry.get()
-        print("Phase 1: new_transaction.py")
         save_transaction(user,title,amount,type,category)
         window.destroy()
         update_table(callback,content_frm,user)

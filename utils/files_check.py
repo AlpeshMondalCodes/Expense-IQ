@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import json
 import shutil
+from tkinter import messagebox,Tk
 
 required_directories=["data","data/users","ui","ui/assets","utils"]
 required_files=["utils/file_handler.py","utils/date_calculator.py","ui/theme.py","ui/main_ui.py","ui/login.py","ui/get_preferences.py","ui/assets/dark.png","ui/assets/light.png","data/defaults.json","main.py"]
@@ -51,9 +52,11 @@ def ensure_json_structure():
         data = open_user_json(user)
         if data is None:
             # File is corrupted, backup it and create new with defaults
-            backup_path = f"data/users/backup_{user}.json"
+            backup_path = f"data/users/backup_{user}.json.bkp"
             shutil.copy(user_path, backup_path)
-            print(f"Backed up corrupted {user}.json to {backup_path}")
+            root=Tk()
+            messagebox.showwarning("Backup Created",f"Backed up corrupted {user}.json to {backup_path}")
+            root.destroy()
             data = default.copy()  # Use defaults
         else:
             # Process as before

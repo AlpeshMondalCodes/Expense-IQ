@@ -68,7 +68,7 @@ def transactions_tab(content_frame,user):
         table_frame.rowconfigure(rows,uniform="a")
         table_frame.columnconfigure(0,weight=1,uniform="a")
 
-        selected=None
+        selected=[None,None]
 
         def hover_item(e):
             e.configure(fg_color=DARK["card_hover"])
@@ -76,13 +76,15 @@ def transactions_tab(content_frame,user):
         def unhover_item(e):
             e.configure(fg_color="transparent")
 
-        def select_item(e):
+        def select_item(e,ID):
             nonlocal selected
-            if selected==None:
-                selected=e
+            if selected[0]==None:
+                selected[0]=e
+                selected[1]=ID
             else:
-                selected.configure(border_color=DARK["card"])
-                selected=e
+                selected[0].configure(border_color=DARK["card"])
+                selected[0]=e
+                selected[1]=ID
             e.configure(border_color=PRIMARY)
 
         # Table generation -------------------------------------------------------------------------------------------------------------
@@ -109,16 +111,52 @@ def transactions_tab(content_frame,user):
             ctk.CTkLabel(row_frame[i], text=txn["category"]).grid(row=0, column=4, padx=5, pady=5)
 
             row_frame[i].bind("<Enter>", lambda e,index=i: hover_item(row_frame[index]))
-            row_frame[i].bind("<Button-1>", lambda e,index=i: select_item(row_frame[index]))
+            row_frame[i].bind("<Button-1>", lambda e,index=i,ID=txn["id"]: select_item(row_frame[index],ID))
             row_frame[i].bind("<Leave>", lambda e,index=i: unhover_item(row_frame[index]))
 
             for child in row_frame[i].winfo_children():
                 child.bind("<Enter>", lambda e,index=i: hover_item(row_frame[index]))
-                child.bind("<Button-1>", lambda e,index=i: select_item(row_frame[index]))
+                child.bind("<Button-1>", lambda e,index=i,ID=txn["id"]: select_item(row_frame[index],ID))
                 child.bind("<Leave>", lambda e,index=i: unhover_item(row_frame[index]))
 
+        def delete_transaction(user):
+            uid=selected[1]
+            deleted_amount=0
+            deleted_expense=True
+            
+            # Find and remove transaction
+            for txn in transactions[:]:
+                if txn["id"]==uid:
+                    deleted_amount=txn["amount"]
+                    deleted_expense=txn["type"]=="Expense"
+                    transactions.remove(txn)
+                    break
+            
+            # Renumber all IDs
+            for i in range(len(transactions)):
+                transactions[i]["id"]=i+1
+
+            #updating userFile
+            data=open_user_json(user)                
+            data["data"]["transactions"]=transactions
+            if deleted_expense:
+                data["data"]["balance"]+=deleted_amount
+                data["budget"]["current_spent"]-=deleted_amount
+                data["analytics"]["monthly_summary"]["Expense"]-=deleted_amount
+            if not deleted_expense:
+                data["data"]["balance"]-=deleted_amount
+                data["analytics"]["monthly_summary"]["income"]-=deleted_amount
+            write_json(f"data/users/{user}.json",data)
+
+            messagebox.showinfo("Deleted",f"Transaction Deleted successfully\nid:{uid}")
+            transactions_tab(content_frame,user)
+
+
+        del_btn=ctk.CTkButton(content_frame,text="Delete ⮾",width=150,height=45,corner_radius=10,fg_color=DANGER,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda: delete_transaction(user))
+        del_btn.place(rely=1,relx=0.8,x=-50,y=-10,anchor="se")
+
     new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=200,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(user,Dashboard,content_frame))
-    new_btn.place(rely=1,relx=1,x=-50,y=-10,anchor="se")
+    new_btn.place(rely=1,relx=1,x=-45,y=-10,anchor="se")
     
 def budget_tab(content_frame,username):
     clear_content(content_frame)
