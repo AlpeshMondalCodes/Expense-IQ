@@ -5,8 +5,10 @@ import json
 from ui.theme import *
 from ui.login import login_window
 from ui.main_ui import main_ui
-from utils.file_handler import check_pass,get_remember_default,open_user_json
+from utils.file_handler import check_pass,get_remember_default,open_user_json,get_user
 from utils.files_check import ensure_files
+from utils.monthly_updater import monthly_update
+from utils.date_calculator import get_today
 
 def on_login(username,window,theme,remember):
     pass_dia=ctk.CTkInputDialog(text="Password")
@@ -20,6 +22,13 @@ def on_login(username,window,theme,remember):
         return False
 
 app_data=get_remember_default()
+today=get_today()
+month=today.strftime("%m")
+if app_data["month_processed"]!=month:
+    users=get_user()
+    for user in users:
+        monthly_update(user,month)
+
 
 def login_remembered_user():
     username=app_data["username"]

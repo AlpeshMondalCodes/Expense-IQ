@@ -3,6 +3,9 @@ from pathlib import Path
 import json
 import shutil
 from tkinter import messagebox,Tk
+from utils.file_handler import get_user
+from utils.monthly_updater import monthly_update
+from utils.date_calculator import get_today
 
 required_directories=["data","data/users","ui","ui/assets","utils"]
 required_files=["utils/file_handler.py","utils/date_calculator.py","ui/theme.py","ui/main_ui.py","ui/login.py","ui/get_preferences.py","ui/assets/dark.png","ui/assets/light.png","data/defaults.json","main.py"]
@@ -82,4 +85,15 @@ def ensure_json_structure():
         write_json(user_path, data)
         #Credits for this func: ChatGPT(missing data filled),GithubCopilot (corrupted files data loss prevention)
 
+def ensure_user_months():
+    users=get_user()
+    current_month=get_today().strftime("%Y-%m")  # Compare full YYYY-MM format
+    for user in users:
+        data=open_user_json(user)
+        month=str(data["budget"]["month"])
+        if month!=current_month:  # Compare full month string
+            print(f"Updating {user}: {month} -> {current_month}")
+            monthly_update(user)
+        
 ensure_json_structure()
+ensure_user_months()

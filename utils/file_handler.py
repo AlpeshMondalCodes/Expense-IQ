@@ -135,7 +135,7 @@ def save_transaction(user,title,amount,type,category):
     data=open_user_json(user)
     transaction_data=data["data"]["transactions"]
 
-    if transaction_data==[]:
+    if transaction_data==[] or not(transaction_data):
         latest_id=0
     else:
         latest_tansaction=transaction_data[len(transaction_data)-1]
@@ -152,18 +152,17 @@ def save_transaction(user,title,amount,type,category):
         "amount":amount,
         "title":title,
     }
-    print(transaction_data)
     transaction_data.append(transaction)
     data["data"]["transactions"]=transaction_data
 
     #after transaction processing (e.g. balance update etc)
-    print("Balance:",data["data"]["balance"],"Amount:",amount)
     if type=="Expense":
         data["data"]["balance"]=data["data"]["balance"]-amount
         data["budget"]["current_spent"]=data["budget"]["current_spent"]+amount
         data["analytics"]["monthly_summary"]["Expense"]=data["analytics"]["monthly_summary"]["Expense"]+amount
     else:
         data["data"]["balance"]=data["data"]["balance"]+amount
+        data["analytics"]["monthly_summary"]["income"]=data["analytics"]["monthly_summary"]["income"]+amount
 
     write_json(f"data/users/{user}.json",data)
 
