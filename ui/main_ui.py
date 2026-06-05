@@ -19,6 +19,7 @@ def centered_window(parent,width,height):
 
 def fill_topbar(username,topbar):
     global balance_lbl,welcome_lbl
+    clear_content(topbar)
 
     data=read_json(f"data/users/{username}.json")
     name=data["profile"]["name"]
@@ -52,6 +53,9 @@ def Dashboard(content_frame,username):
     transactions=user_json["data"]["transactions"]
     if transactions==[{}] or not transactions or all(not t for t in transactions):
         ctk.CTkLabel(transaction_frame,text="No Transactions").place(anchor="center",relx=0.5,rely=0.5)
+    else:
+        preveiw_transactions=transactions[:5]
+        print(preveiw_transactions)
     
 def transactions_tab(content_frame,user):
     clear_content(content_frame)
@@ -148,6 +152,7 @@ def transactions_tab(content_frame,user):
                 data["analytics"]["monthly_summary"]["income"]-=deleted_amount
             write_json(f"data/users/{user}.json",data)
 
+            fill_topbar(user,topbar)
             messagebox.showinfo("Deleted",f"Transaction Deleted successfully\nid:{uid}")
             transactions_tab(content_frame,user)
 
@@ -155,7 +160,7 @@ def transactions_tab(content_frame,user):
         del_btn=ctk.CTkButton(content_frame,text="Delete ⮾",width=150,height=45,corner_radius=10,fg_color=DANGER,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda: delete_transaction(user))
         del_btn.place(rely=1,relx=0.8,x=-50,y=-10,anchor="se")
 
-    new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=200,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(user,Dashboard,content_frame))
+    new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=200,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(user,Dashboard,content_frame,fill_topbar,topbar))
     new_btn.place(rely=1,relx=1,x=-45,y=-10,anchor="se")
     
 def budget_tab(content_frame,username):
@@ -445,6 +450,7 @@ def main_ui(username,theme,login,remember):
     logout.pack(pady=10,padx=10,fill="x",side="bottom")
     settings.pack(pady=10,padx=10,fill="x",side="bottom")
     #################################################################################################
+    global topbar
     topbar=ctk.CTkFrame(root,height=50,border_color=BLUE_BORDER,fg_color=(LIGHT["frame"],DARK["frame"]))
     topbar.pack(side="top",fill="x")
     topbar.pack_propagate(False)

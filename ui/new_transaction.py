@@ -27,7 +27,7 @@ def centered_window(parent, width, height):
 def update_table(callback,content,user):
     callback(content,user)
 
-def new_transaction(user,callback,content_frm):
+def new_transaction(user,callback,content_frm,topbar,topbar_frame):
     window=ctk.CTk()
     window.title("Provide Data for your Account")
     centered_window(window, 800, 300)
@@ -55,6 +55,7 @@ def new_transaction(user,callback,content_frm):
         save_transaction(user,title,amount,type,category)
         window.destroy()
         update_table(callback,content_frm,user)
+        topbar(user,topbar_frame)
         messagebox.showinfo("Successfull Transaction",f"The transaction for title :{title} has successfully added to your data.")
 
 
