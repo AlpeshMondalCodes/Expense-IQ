@@ -95,5 +95,6 @@ def ensure_user_months():
             print(f"Updating {user}: {month} -> {current_month}")
             monthly_update(user)
         
+ensure_files()
 ensure_json_structure()
 ensure_user_months()
