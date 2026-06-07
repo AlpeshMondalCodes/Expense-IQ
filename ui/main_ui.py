@@ -1,7 +1,7 @@
 import customtkinter as ctk
 from ui.new_transaction import new_transaction
 from ui.theme import *
-from utils.file_handler import read_json,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
+from utils.file_handler import read_json, update_user_threshold,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
 from utils.date_calculator import *
 from tkinter import messagebox
 from tkinter.ttk import Treeview
@@ -9,6 +9,10 @@ from tkinter.ttk import Treeview
 def clear_content(frame):
     for widget in frame.winfo_children():
         widget.destroy()
+
+def recall_budget_tab(callback,content_frame,username):
+    clear_content(content_frame)
+    callback(content_frame,username)
 
 def centered_window(parent,width,height):
     screen_width=parent.winfo_screenwidth()
@@ -26,7 +30,7 @@ def fill_topbar(username,topbar):
     name_str=f" Welcome {str(name)} "
     balance=data["data"]["balance"]
     balance_str=f" Current Balance:{int(balance)} "
-    alert_btn=ctk.CTkButton(topbar,text="Alerts",font=("Calbri",14),fg_color=DARK["card"],corner_radius=10,hover_color=DANGER)
+    alert_btn=ctk.CTkButton(topbar,text="Alerts",font=("Calbri",16),fg_color=DARK["card"],corner_radius=10,hover_color=DANGER)
     alert_btn.pack(side="right",padx=20,pady=5,ipady=5)
     left_frame = ctk.CTkFrame(topbar, fg_color="transparent")
     left_frame.pack(side="left", padx=10)
@@ -163,55 +167,230 @@ def transactions_tab(content_frame,user):
     new_btn=ctk.CTkButton(content_frame,text="New Transaction",width=200,height=45,corner_radius=10,fg_color=SUCCESS,hover_color=WARNING,bg_color=DARK["card"],text_color=DARK["border"],command=lambda :new_transaction(user,Dashboard,content_frame,fill_topbar,topbar))
     new_btn.place(rely=1,relx=1,x=-45,y=-10,anchor="se")
     
-def budget_tab(content_frame,username):
+def budget_tab(content_frame, username):
     clear_content(content_frame)
-    data=open_user_json(username)
-    budget_data=data["budget"]
-    monthly_income=data["data"]["monthly_income"]
-    balance=data["data"]["balance"]
-    monthly_limit=budget_data["monthly_limit"]
-    spent=budget_data["current_spent"]
-    currency=data["profile"]["currency"]
-    saving=data["analytics"]["monthly_summary"]["savings"]
 
-    frame = ctk.CTkFrame(content_frame, fg_color="transparent")
-    frame.pack(side="left", padx=10, pady=10,fill="x",anchor="nw")
+    def update_threshold():
+        new_threshold=threshold_entry.get()
+        try:
+            new_threshold=int(new_threshold)
+            update_user_threshold(username,new_threshold)
+            messagebox.showinfo("Updated","Alert threshold updated successfully")
+            threshold_entry.delete(0, 'end')
+            threshold_entry.insert(0, str(new_threshold))
+            recall_budget_tab(budget_tab,content_frame,username)
+            return
+        except:
+            messagebox.showerror("Invalid Input","Please enter a valid number")
+            threshold_entry.delete(0, 'end')
+            threshold_entry.insert(0, str(threshold))
+            return
 
-    # budget coloring
-    if spent > monthly_limit:
-        spent_color = DANGER
-    elif spent > monthly_limit * 0.7:
-        spent_color = WARNING
+    def edit_budget():
+        from utils.file_handler import change_budget_limit
+        #the ui!
+        menu=ctk.CTkInputDialog(text="Enter new monthly limit")
+        new_limit=menu.get_input()
+        try:
+            new_limit=int(new_limit)
+            change_budget_limit(username,new_limit)
+            messagebox.showinfo("Success","Monthly limit updated successfully")
+            #reload UI
+            recall_budget_tab(budget_tab,content_frame,username)            
+        except:
+            messagebox.showerror("Invalid Input","Please enter a valid number")
+            return
+    # Create a scrollable frame with grid layout inside content_frame
+    main_scroll_frame = ctk.CTkScrollableFrame(
+        content_frame,
+        fg_color=DARK["bg"],
+        corner_radius=0
+    )
+    main_scroll_frame.pack(expand=True, fill="both")
+    
+    # Grid configuration on the scrollable frame - 3 columns always available
+    main_scroll_frame.grid_columnconfigure(0, weight=1)
+    main_scroll_frame.grid_columnconfigure(1, weight=1)
+    main_scroll_frame.grid_columnconfigure(2, weight=1)
+    
+    main_scroll_frame.grid_rowconfigure(0, weight=0, minsize=200)   # Row 0: 3 cards
+    main_scroll_frame.grid_rowconfigure(1, weight=0, minsize=140)   # Row 1: Progress bar
+    main_scroll_frame.grid_rowconfigure(2, weight=0, minsize=140)   # Row 2: Quick Stats + Edit
+    main_scroll_frame.grid_rowconfigure(3, weight=0, minsize=120)    # Row 3: Extra
+    main_scroll_frame.grid_rowconfigure(4, weight=0, minsize=80)    # Row 4: Extra
+    main_scroll_frame.grid_rowconfigure(5, weight=0, minsize=80)    # Row 5: Extra
+    main_scroll_frame.grid_rowconfigure(6, weight=1)                # Extra space
+
+    # Function to handle responsive layout
+    # Function to handle responsive layout
+    def update_layout():
+        available_width = content_frame.winfo_width() - 60  # Account for padding
+        
+        if available_width < 500:
+            # Single column layout - stack vertically
+            budget_status_card.grid(row=0, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card2.grid(row=1, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card3.grid(row=2, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card4.grid(row=3, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card5.grid(row=4, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card6.grid(row=5, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card7.grid(row=6, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            
+        elif available_width < 1500:
+            # Two column layout
+            budget_status_card.grid(row=0, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card2.grid(row=0, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
+            card3.grid(row=1, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card4.grid(row=1, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
+            card5.grid(row=2, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card6.grid(row=2, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
+            card7.grid(row=3, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew") 
+            
+        else:
+            # Three column layout
+            budget_status_card.grid(row=0, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card2.grid(row=0, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card3.grid(row=0, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card4.grid(row=1, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card5.grid(row=2, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card6.grid(row=2, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card7.grid(row=2, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+    # Get data
+    data = open_user_json(username)
+    budget_data = data["budget"]
+    monthly_income = data["data"]["monthly_income"]
+    balance = data["data"]["balance"]
+    monthly_limit = budget_data["monthly_limit"]
+    spent = budget_data["current_spent"]
+    currency = data["profile"]["currency"]
+    saving = data["analytics"]["monthly_summary"]["savings"]
+    spent_percent=float(round(spent/monthly_limit*100,2))
+    threshold=data["budget"]["threshold_percent"]
+    
+    # Determine status color based on spending level
+    if spent_percent<threshold:
+        status_color="#a6e3a1"  # Green
+        index=0
+    elif spent_percent<100:
+        status_color="#f9e2af"  # Yellow
+        index=1
     else:
-        spent_color = SUCCESS
-
-    title=ctk.CTkLabel(frame,text_color=DARK["text"],text="Monthly Overveiw",font=("Arial",24,"bold"))
-    budget=ctk.CTkLabel(frame,text_color=DARK["subtext"],text=f"Monthly Budget:{currency} {monthly_limit}",font=("Arial",20))
-    income=ctk.CTkLabel(frame,text_color=DARK["subtext"],text=f"Monthly Income:{currency} {monthly_income}",font=("Arial",20))
-    spent_title=ctk.CTkLabel(frame,text=f"Monthly Spent:{currency} {spent}",font=("Arial",20),text_color=spent_color)
-    balance_lbl=ctk.CTkLabel(frame,text_color=DARK["subtext"],text=f"Monthly Balance:{currency} {balance}",font=("Arial",20))
-
-    frame2=ctk.CTkFrame(content_frame, fg_color="transparent")
-    frame2.pack(padx=10, pady=10,fill="both",expand=True,side="right",anchor="ne")
-
-    #progress
-    expense_progress=ctk.CTkProgressBar(frame2,corner_radius=5,progress_color=spent_color,fg_color=DARK["bg"])
-    expense_progress.set(spent/monthly_limit)
-
-    saving_lbl=ctk.CTkLabel(frame2,text=f"Savings:{currency} {saving}",corner_radius=10,fg_color=DARK["card"])
-
-    #layout
-    title.pack(pady=15,padx=10)
-    budget.pack(pady=15,padx=10)
-    spent_title.pack(pady=15,padx=10)
-    balance_lbl.pack(pady=15,padx=10)
-
-    expense_progress.pack(anchor="n",ipadx=5,ipady=5,padx=10,pady=10,fill="x")
-    saving_lbl.pack(anchor="n",ipadx=5,ipady=5,padx=10,pady=10)
-
+        status_color="#f38ba8"  # Red
+        index=2
     
-    
+    # ===== ROW 0: BUDGET STATUS CARD =====
+    budget_status_card = ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
 
+    title=ctk.CTkLabel(budget_status_card,text="Budget Status",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    Monthly_Limit=ctk.CTkLabel(budget_status_card,text=f"Monthly Limit:{monthly_limit:,}",font=("Segoe UI",12),text_color=DARK["subtext"])
+    amount_display=ctk.CTkLabel(budget_status_card,text=f"{currency} {int(spent):,}({'100+' if spent_percent>100 else f'{spent_percent:.1f}'}%)",font=("Segoe UI",32,"bold"),text_color=DARK["primary"])
+    title.pack(anchor="w",padx=(20,0),pady=(15, 10))
+    Monthly_Limit.pack(anchor="w",padx=20)
+    amount_display.pack(anchor="w",padx=20,pady=(0,10))
+
+    #progressbarr part
+    spent_bar=ctk.CTkProgressBar(budget_status_card,height=12,corner_radius=6,bg_color=DARK["bg"])
+    spent_bar.pack(anchor="w",padx=20,pady=(0,12),fill="x")
+    spent_bar.set(min(spent_percent/100, 1.0))
+    spent_bar.configure(progress_color=status_color)
+
+    badge_txt=["On Track","Caution","Over Budget"]
+    badge=ctk.CTkLabel(budget_status_card,text=badge_txt[index],text_color=DARK["bg"],fg_color=status_color,font=("Segoe UI",12,"bold"),corner_radius=8)
+    badge.pack(anchor="e",side="bottom",padx=12,pady=12)
+
+    # ===== ROW 1: INCOME v/s SPENDING =====
+    card2=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
+    title2=ctk.CTkLabel(card2,text="Income v/s Spending",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title2.pack(anchor="w",padx=(20,0),pady=(15, 10))
+    comparison_frame=ctk.CTkFrame(card2,fg_color="transparent")
+    comparison_frame.pack(side="bottom",expand=True,fill="both",padx=20,pady=(0,40))
+    comparison_frame.columnconfigure((0,2),weight=20)
+    comparison_frame.columnconfigure(1,weight=1)
+    comparison_frame.rowconfigure(0,weight=1)
+    comparison_frame.rowconfigure(1,weight=8)
+    label_income=ctk.CTkLabel(comparison_frame,text="Monthly Income",font=("Segoe UI",12),text_color=DARK["subtext"])
+    label_income.grid(row=0,column=0,sticky="e",padx=20,pady=(10,0))
+    income=ctk.CTkLabel(comparison_frame,text=f"\u2191 {currency} {int(monthly_income):,}",font=("Segoe UI",28),text_color="#a6e3a1")
+    income.grid(row=1,column=0,sticky="e",padx=20,pady=(10,0))
+
+    divider=ctk.CTkLabel(comparison_frame,text="v/s",font=("Segoe UI",16,"bold"),text_color=DARK["subtext"])
+    divider.grid(row=0,column=1,sticky="ew",padx=10,pady=(10,0))
+
+    label_spent=ctk.CTkLabel(comparison_frame,text=f"Spent",font=("Segoe UI",12),text_color=DARK["subtext"])
+    label_spent.grid(row=0,column=2,sticky="w",padx=20,pady=(10,0))
+    spent_lbl=ctk.CTkLabel(comparison_frame,text=f"\u2193 {currency} {int(spent):,}",font=("Segoe UI",28),text_color=status_color)
+    spent_lbl.grid(row=1,column=2,sticky="w",padx=20,pady=(10,0))
+
+    #===== ROW 2: SAVINGS CARD=====
+    card3=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=2,border_color=PRIMARY,corner_radius=15) #highlighted border
+    title3=ctk.CTkLabel(card3,text="Monthly Savings",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title3.pack(anchor="w",padx=(20,0),pady=(15, 10))
+    savings=ctk.CTkLabel(card3,text=f"{currency} {int(saving):,}",font=("Segoe UI",28),text_color="#a6e3a1")
+    savings.pack(anchor="w",padx=(20,0),pady=(0, 10))
+
+    saving_percent=saving/monthly_income*100 if monthly_income>0 else 100
+    saving_percent_lbl=ctk.CTkLabel(card3,text=f"{saving_percent:.1f}% of Income",font=("Segoe UI",12),text_color=DARK["subtext"])
+    saving_percent_lbl.pack(anchor="w",padx=(20,0),pady=(0, 10))
+
+    #===== CARD 4: BUDGET PROGRESS CARD ====
+    card4=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
+    title4=ctk.CTkLabel(card4,text="Budget Progress",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title4.pack(anchor="w",padx=(20,0),pady=(15, 10))
+    info=ctk.CTkLabel(card4,text=f"You have spent {spent_percent:.1f}% of your monthly budget",font=("Segoe UI",12),text_color=DARK["subtext"])
+    info.pack(anchor="w",padx=(20,0),pady=(0, 10))
+    progress_bar=ctk.CTkProgressBar(card4,height=20,corner_radius=10,bg_color=DARK["bg"])
+    progress_bar.pack(fill="x",padx=20,pady=(0, 20))
+    progress_bar.set(min(spent_percent/100, 1.0))
+    progress_bar.configure(progress_color=status_color)
+
+    #===== CARD 5: QUICK STATS CARD =====
+    card5=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
+    title5=ctk.CTkLabel(card5,text="Quick Stats",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title5.pack(anchor="w",padx=(20,0),pady=(15, 10))
+    days_left=get_days_remaining_in_month()
+    days_remaining=ctk.CTkLabel(card5,text=f"\U0001F4C5 Days Remaining: {days_left}",font=("Segoe UI",12),text_color=DARK["subtext"])
+    days_remaining.pack(anchor="w",padx=(20,0),pady=(0, 10))
+    total_days=get_total_days()
+    daily_avg=int(spent/int(total_days-days_left) if days_left>0 else 0)
+    daily_average=ctk.CTkLabel(card5,text=f"\U0001F4CA Daily Average: {currency} {daily_avg:.2f}/ Day",font=("Segoe UI",12),text_color=DARK["subtext"])
+    daily_average.pack(anchor="w",padx=(20,0),pady=(0, 10))
+    suggesstions_txt=["You are doing Well.","Try to limit unnecessary expenses.","No more money left in balance to spend"]
+    suggesstions_lbl=ctk.CTkLabel(card5,text=f"\U0001F914 Suggestion: {suggesstions_txt[index]}",font=("Segoe UI",12),text_color=DARK["subtext"])
+    suggesstions_lbl.pack(anchor="w",padx=(20,0),pady=(0, 10))
+
+    #=====CARD 6: EDIT BUDGET CARD =====
+    card6=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
+    title6=ctk.CTkLabel(card6,text="Edit Budget",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title6.pack(anchor="w",padx=(20,0),pady=(15))
+    current_data=ctk.CTkLabel(card6,text=f"{currency} {int(monthly_limit):,}",font=("Segoe UI",28),text_color=DARK["subtext"])
+    current_data.pack(anchor="w",padx=(20,0),pady=(0, 10))
+    edit_btn=ctk.CTkButton(card6,text="Edit Monthly Limit",width=200,height=40,corner_radius=10,fg_color=PRIMARY,hover_color=PRIMARY_HOVER,command=edit_budget)
+    edit_btn.pack(anchor="w",padx=(20,0),pady=(0, 20))
+
+    #=====CARD 7: ALERT THRESHOLD CARD =====
+
+    card7 = ctk.CTkFrame(main_scroll_frame, fg_color=DARK['card'], border_width=1, border_color=DARK["border"], corner_radius=15)
+    title7 = ctk.CTkLabel(card7, text="Alert Settings", font=("Segoe UI", 16, "bold"), text_color=DARK["text"])
+    title7.pack(anchor="w", padx=(20,0), pady=(15, 10))
+    edit_threshold_lbl = ctk.CTkLabel(card7, text=f"Current Threshold: {threshold}%", font=("Segoe UI", 12), text_color=DARK["subtext"])
+    edit_threshold_lbl.pack(anchor="w", padx=(20,0), pady=(0, 10))
+    threshold_entry = ctk.CTkEntry(card7, height=40, corner_radius=10, placeholder_text=f"{threshold}", placeholder_text_color=DARK["subtext"], fg_color=DARK["bg"], border_color=DARK["border"])
+    threshold_entry.pack(anchor="w",fill="x", padx=20, pady=(0, 20))
+    cnf_btn = ctk.CTkButton(card7, text="Confirm", height=40, corner_radius=10, fg_color=PRIMARY, hover_color=PRIMARY_HOVER, command=update_threshold)
+    cnf_btn.pack(anchor="w",fill="x", padx=20, pady=(0, 20))
+    # Bind resize event to update layout
+
+    resize_timer=None
+
+    def resize_debounce(e):
+        nonlocal resize_timer
+        if resize_timer is not None:
+            content_frame.after_cancel(resize_timer)  # Cancel the pending update
+        # 120ms is the perfect quality/performance balance
+        resize_timer = content_frame.after(120, update_layout)
+
+    content_frame.bind("<Configure>", lambda e: resize_debounce(e))
+    update_layout()  # Initial layout setup
 def setting(content_frame, username, current_theme="dark"):
     clear_content(content_frame)
     data = read_json(f"data/users/{username}.json")
@@ -433,7 +612,7 @@ def main_ui(username,theme,login,remember):
     sidebar.pack_propagate(False)
     #------ SIDEBAR BUTTONS ------------------------------------------------------------------------------
     today=ctk.CTkLabel(sidebar,text=str(get_today()),font=("Segoe UI",20,"bold"),fg_color="transparent")
-    day=ctk.CTkLabel(sidebar,text=str(get_weekday_formatted()),font=("Segoe UI",14,"bold"),fg_color="transparent")
+    day=ctk.CTkLabel(sidebar,text=str(get_weekday_formatted()),font=("Segoe UI",16,"bold"),fg_color="transparent")
     dashboard=ctk.CTkButton(sidebar,text="Dashboard",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:Dashboard(content_frame,username))
     transaction=ctk.CTkButton(sidebar,text="Transaction",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:transactions_tab(content_frame,username))
     budget=ctk.CTkButton(sidebar,text="Budget",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:budget_tab(content_frame,username))

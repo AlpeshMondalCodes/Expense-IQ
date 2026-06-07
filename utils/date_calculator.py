@@ -22,3 +22,17 @@ def get_weekday_formatted():
     if day==6:
         txt="S  U  N"
     return txt
+
+def get_total_days():
+    today=get_today()
+    if today.month in [1, 3, 5, 7, 8, 10, 12]:
+        return 31
+    elif today.month == 2:
+        return 29 if (today.year % 4 == 0 and today.year % 100 != 0) or (today.year % 400 == 0) else 28
+    else:
+        return 30
+
+def get_days_remaining_in_month():
+    today = get_today()
+    total_days = get_total_days()
+    return total_days - today.day

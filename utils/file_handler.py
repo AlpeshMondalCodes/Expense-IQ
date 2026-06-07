@@ -175,3 +175,13 @@ def get_id(user):
     else:
         latest_tansaction=transaction_data[len(transaction_data)-1]
     return latest_tansaction["id"]
+
+def change_budget_limit(user,new_limit):
+    data=open_user_json(user)
+    data["budget"]["monthly_limit"]=new_limit
+    write_json(f"data/users/{user}.json",data)
+
+def update_user_threshold(user,new_threshold):
+    data=open_user_json(user)
+    data["budget"]["threshold_percent"]=new_threshold
+    write_json(f"data/users/{user}.json",data)

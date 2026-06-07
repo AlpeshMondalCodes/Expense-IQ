@@ -13,7 +13,7 @@ DARK = {
     "primary": PRIMARY,
     "primary_hover": PRIMARY_HOVER,
     "text": "#cdd6f4",     # text (lightest)
-    "subtext": "#a6adc8",  # subtext
+    "subtext": "#a6adc7",  # subtext
     "border": "#585b70"    # surface2
 }
 
