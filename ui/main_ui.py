@@ -243,8 +243,8 @@ def budget_tab(content_frame, username):
             card3.grid(row=1, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card4.grid(row=1, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
             card5.grid(row=2, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
-            card6.grid(row=2, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
-            card7.grid(row=3, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew") 
+            card6.grid(row=2, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card7.grid(row=2, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew") 
             
         else:
             # Three column layout
@@ -264,18 +264,21 @@ def budget_tab(content_frame, username):
     spent = budget_data["current_spent"]
     currency = data["profile"]["currency"]
     saving = data["analytics"]["monthly_summary"]["savings"]
-    spent_percent=float(round(spent/monthly_limit*100,2))
+    try:
+        spent_percent=float(round(spent/monthly_limit*100,2))
+    except ZeroDivisionError:
+        spent_percent=0
     threshold=data["budget"]["threshold_percent"]
     
     # Determine status color based on spending level
     if spent_percent<threshold:
-        status_color="#a6e3a1"  # Green
+        status_color=SUCCESS  # Green
         index=0
     elif spent_percent<100:
-        status_color="#f9e2af"  # Yellow
+        status_color=WARNING  # Yellow
         index=1
     else:
-        status_color="#f38ba8"  # Red
+        status_color=DANGER  # Red
         index=2
     
     # ===== ROW 0: BUDGET STATUS CARD =====
@@ -310,7 +313,7 @@ def budget_tab(content_frame, username):
     comparison_frame.rowconfigure(1,weight=8)
     label_income=ctk.CTkLabel(comparison_frame,text="Monthly Income",font=("Segoe UI",12),text_color=DARK["subtext"])
     label_income.grid(row=0,column=0,sticky="e",padx=20,pady=(10,0))
-    income=ctk.CTkLabel(comparison_frame,text=f"\u2191 {currency} {int(monthly_income):,}",font=("Segoe UI",28),text_color="#a6e3a1")
+    income=ctk.CTkLabel(comparison_frame,text=f"\u2191 {currency} {int(monthly_income):,}",font=("Segoe UI",28),text_color=GAIN_COLOR)
     income.grid(row=1,column=0,sticky="e",padx=20,pady=(10,0))
 
     divider=ctk.CTkLabel(comparison_frame,text="v/s",font=("Segoe UI",16,"bold"),text_color=DARK["subtext"])
@@ -318,14 +321,14 @@ def budget_tab(content_frame, username):
 
     label_spent=ctk.CTkLabel(comparison_frame,text=f"Spent",font=("Segoe UI",12),text_color=DARK["subtext"])
     label_spent.grid(row=0,column=2,sticky="w",padx=20,pady=(10,0))
-    spent_lbl=ctk.CTkLabel(comparison_frame,text=f"\u2193 {currency} {int(spent):,}",font=("Segoe UI",28),text_color=status_color)
+    spent_lbl=ctk.CTkLabel(comparison_frame,text=f"\u2193 {currency} {int(spent):,}",font=("Segoe UI",28),text_color=LOSS_COLOR)
     spent_lbl.grid(row=1,column=2,sticky="w",padx=20,pady=(10,0))
 
     #===== ROW 2: SAVINGS CARD=====
     card3=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=2,border_color=PRIMARY,corner_radius=15) #highlighted border
     title3=ctk.CTkLabel(card3,text="Monthly Savings",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
     title3.pack(anchor="w",padx=(20,0),pady=(15, 10))
-    savings=ctk.CTkLabel(card3,text=f"{currency} {int(saving):,}",font=("Segoe UI",28),text_color="#a6e3a1")
+    savings=ctk.CTkLabel(card3,text=f"{currency} {int(saving):,}",font=("Segoe UI",28),text_color=GAIN_COLOR)
     savings.pack(anchor="w",padx=(20,0),pady=(0, 10))
 
     saving_percent=saving/monthly_income*100 if monthly_income>0 else 100
@@ -391,6 +394,7 @@ def budget_tab(content_frame, username):
 
     content_frame.bind("<Configure>", lambda e: resize_debounce(e))
     update_layout()  # Initial layout setup
+
 def setting(content_frame, username, current_theme="dark"):
     clear_content(content_frame)
     data = read_json(f"data/users/{username}.json")
