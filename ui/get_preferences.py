@@ -1,6 +1,5 @@
 import customtkinter as ctk
 
-
 # ---------------- COLORS ----------------
 BG = "#181825"
 SURFACE = "#1e1e2e"
@@ -32,7 +31,38 @@ def get_preferences(parent):
     window.resizable(False, False)
     window.configure(fg_color=BG)
 
-    questions=["What should we call you?","Set your monthly spending budget","Warn me when spending reaches ___ %","Which currency do you follow","What is your theme preference"]
+    def check_int(e):
+        char=e.char
+        valid="0123456789"
+        if e.keycode==8 or e.keycode==46:
+            return
+        if char not in valid:
+            return "break"
+
+    def enable_button():
+        if nameEntry.get()=="" or budgetEntry.get()=="" or currencySelection.get()=="" or themeValue.get()=="":
+            submit_button.configure(state="disabled")
+        else:
+            submit_button.configure(state="normal")
+
+    def submit_data():
+        nonlocal data
+        name=nameEntry.get()
+        budget=float(budgetEntry.get())
+        threshold=thresholdValue.get()
+        currency=currencySelection.get()
+        theme=themeValue.get()
+
+        data["name"]=name
+        data["monthly_limit"]=budget
+        data["threshold_percent"]=threshold
+        data["currency"]=currency
+        data["theme"]=theme
+
+        #submit it to file_handler
+        window.destroy()
+
+    questions=["What should we call you?","Set your monthly spending budget","Warn me when spending reaches ","Which currency do you follow","What is your theme preference"]
     data={
         "name":"",
         "monthly_limit":0,
@@ -43,118 +73,69 @@ def get_preferences(parent):
     keys=["name","monthly_limit","threshold_percent","currency","theme"]
     current_index=0
 
+    left_frame=ctk.CTkFrame(window,fg_color=BG)
+    left_frame.pack(side="left",fill="both",expand=True)
+    right_frame=ctk.CTkFrame(window,fg_color=BG)
+    right_frame.pack(side="right",fill="both",expand=True)
 
-    def ask_choices():
-        global options, next_btn2
-        nonlocal current_index, pref
+    title=ctk.CTkLabel(left_frame,text="Provide some Information",text_color=TEXT,font=("Dubai Medium",24))
+    title.pack(pady=16)
 
-        ans = options.get()
-        data[keys[current_index]] = ans
+    one=ctk.CTkLabel(left_frame,text=questions[0],text_color=TEXT,font=("Dubai Medium",20))
+    one.pack(anchor="w",padx=20,pady=(0,16))
+    nameEntry=ctk.CTkEntry(left_frame,placeholder_text="Name....",width=500,text_color=TEXT,font=("Dubai Medium",20),border_color=BORDER,fg_color=SURFACE)
+    nameEntry.pack(anchor="w",padx=20,pady=(0,20))
 
-        if current_index == 4:
-            pref = data
-            progress_data.set((current_index + 1) / 5)
-            window.after(100, window.destroy)
-            return
-
-        current_index += 1
-        title.configure(text=questions[current_index])
-
-        options.configure(values=values[current_index - 3])
-
-        progress_data.set((current_index + 1) / 5)
-
-        if current_index == 3:
-            options.set("INR")
-        else:
-            options.set("Dark")
-
-        if current_index == 4:
-            next_btn2.configure(text="Finish")
-
-            
-
-
-
-    def init_choices():
-        nonlocal current_index,questions
-        global options,next_btn2
-        #theming local colors
-        SURFACE = "#313244"   # menu background
-        OVERLAY = "#45475A"   # hover
-        TEXT = "#CDD6F4"      # text
-        current_index+=1
-        progress_data.set((current_index + 1) / 5)
-        entry.destroy()
-        next_btn.destroy()
-        title.configure(text=questions[current_index])
-        options = ctk.CTkOptionMenu(dataFrame,fg_color=SURFACE,button_color=ACCENT,button_hover_color=OVERLAY,dropdown_fg_color=SURFACE,dropdown_hover_color=OVERLAY,dropdown_text_color=TEXT,text_color=TEXT,font=("Segoe UI", 22),width=500,height=50,corner_radius=10)
-        options.pack(pady=10)
-        options.configure(values=values[0])
-        options.set("INR")
-        next_btn2 = ctk.CTkButton(dataFrame,text="Next",fg_color="#454FBF",hover_color="#5865F2",text_color="white",font=("Segoe UI Semibold", 18),width=140,height=45,corner_radius=8,border_width=1,border_color="#6c78ff",command=ask_choices)
-        next_btn2.pack(pady=20)
-
-
-
+    two=ctk.CTkLabel(left_frame,text=questions[1],text_color=TEXT,font=("Dubai Medium",20))
+    two.pack(anchor="w",padx=20,pady=(0,16))
+    budgetEntry=ctk.CTkEntry(left_frame,placeholder_text="Budget....",width=150,text_color=TEXT,font=("Dubai Medium",20),border_color=BORDER,fg_color=SURFACE)
+    budgetEntry.pack(anchor="w",padx=20,pady=(0,20))
+    budgetEntry.bind("<KeyPress>",lambda e:check_int(e))
     
+    thresholdValue=ctk.IntVar(value=80)
+    three_txt=questions[2] + f" {thresholdValue.get()}%"
+    three=ctk.CTkLabel(left_frame,text=three_txt,text_color=TEXT,font=("Dubai Medium",20))
+    three.pack(anchor="w",padx=20,pady=(0,16))
+    
+    threshold_slider=ctk.CTkSlider(left_frame,from_=0,to=100,variable=thresholdValue,height=20,corner_radius=80,command=lambda e:three.configure(text=questions[2] + f" {thresholdValue.get()}%"),width=500,fg_color=BORDER,progress_color=ACCENT,button_color=ACCENT,button_hover_color=ACCENT_HOVER)
+    threshold_slider.pack(anchor="w",padx=20,pady=(0,20))
 
-    def go_next():
-        nonlocal current_index
-        answer=entry.get()
-        if answer!="" and answer!=" " and current_index==0:
-            data[keys[current_index]]=answer
-        elif answer!="" and answer!=" " and current_index>0:
-            try:
-                number=int(answer)
-            except ValueError:
-                title.configure(text="Provide a number",text_color=DANGER)
-                window.after(2000,lambda: title.configure(text=questions[current_index],text_color=TEXT))
-                return
-        else:
-            title.configure(text="Don't leave the entry field empty")
+    #right frame widgets
+    secondary_text=ctk.CTkLabel(right_frame,text="Select your preferences",text_color=TEXT,font=("Dubai Medium",24))
+    secondary_text.pack(pady=16)
+    four=ctk.CTkLabel(right_frame,text=questions[3],text_color=TEXT,font=("Dubai Medium",20))
+    four.pack(anchor="w",padx=20,pady=(0,16))
+    currencySelection=ctk.CTkOptionMenu(right_frame,
+        values=["INR","USD","EUR","GBP"],
+        # Styling
+        width=300,
+        height=45,
+        corner_radius=10,
 
-            window.after(2000,lambda: title.configure(text=questions[current_index]))
-            return
-        
-        if current_index<2:
-            title.configure(text=questions[current_index+1])
-            entry.delete(0,len(questions[current_index+1]))
-            progress_data.set((current_index+2)/5)
-            current_index+=1
-        else:
-            init_choices()
+        fg_color=SURFACE,
+        text_color=TEXT,
+        dropdown_fg_color=SURFACE,
+        button_color=ACCENT,
+        button_hover_color=ACCENT_HOVER,
+        dropdown_hover_color=BG,
+        font=("Segoe UI", 16, "bold")
+    )
+    currencySelection.pack(anchor="w",padx=20,pady=(0,20))
 
-    # Top heading
-    ctk.CTkLabel(window,text="Give Required Data",font=("Bahnschrift SemiBold", 36, "bold"),text_color=TEXT).pack(pady=(20, 10))
+    five=ctk.CTkLabel(right_frame,text=questions[4],text_color=TEXT,font=("Dubai Medium",20))
+    five.pack(anchor="w",padx=20,pady=(0,16))
+    themeValue=ctk.StringVar(value="dark")
+    theme_toggle=ctk.CTkSegmentedButton(right_frame,values=["dark","light"],width=300,height=45,variable=themeValue,corner_radius=10,fg_color=SURFACE,text_color=TEXT,selected_hover_color=ACCENT_HOVER,selected_color=ACCENT,unselected_color=BG,unselected_hover_color=BG,font=("Segoe UI", 16, "bold"))
+    theme_toggle.pack(anchor="w",padx=20,pady=(0,20))
+    theme_toggle.pack_propagate(False)
 
-    # Main frame
-    dataFrame = ctk.CTkFrame(window,fg_color=SURFACE,corner_radius=16)
-    dataFrame.pack(expand=True, fill="both", padx=20, pady=10)
+    submit_button=ctk.CTkButton(right_frame,text="Submit",width=200,height=50,corner_radius=10,fg_color=ACCENT,hover_color=ACCENT_HOVER,command=lambda:submit_data(),state="disabled")
+    submit_button.pack(side="bottom",padx=60,pady=20,fill="x")
 
-    # Progress bar
-    progress_data = ctk.DoubleVar(value=1/5)
-    progress = ctk.CTkProgressBar(dataFrame,variable=progress_data,progress_color=GREEN,fg_color="#313244",height=12)
-    progress.pack(side="top", fill="x", padx=25, pady=20)
-
-    # Question title
-    title = ctk.CTkLabel(dataFrame,text=questions[current_index],font=("Segoe UI Semibold", 28, "bold"),text_color=TEXT)
-    title.pack(pady=15)
-
-    # Input field
-    entry = ctk.CTkEntry(dataFrame,fg_color=BG,border_color=ACCENT,text_color=TEXT,font=("Segoe UI", 22),width=500,height=50,corner_radius=10)
-    entry.pack(pady=10)
-
-
-    values=[["USD","INR","EUR","GBP"],
-            ["Dark","Light"]]
-
-    # Next button
-    next_btn = ctk.CTkButton(dataFrame,text="Next",fg_color="#454FBF",hover_color="#5865F2",text_color="white",font=("Segoe UI Semibold", 18),width=140,height=45,corner_radius=8,border_width=1,border_color="#6c78ff",command=go_next)
-    next_btn.pack(pady=20)
-
-
-    parent.wait_window(window)
-    return pref
-
-#prefer rewriting newer logic using correctindex and if to control widgets inside one single func
+    #binding all
+    nameEntry.bind("<KeyRelease>",lambda e:enable_button())
+    budgetEntry.bind("<KeyRelease>",lambda e:enable_button())
+    budgetEntry.bind("<Control-BackSpace>",lambda e:budgetEntry.delete(0, "end"))
+    window.grab_set()
+    window.wait_window()
+    return data
