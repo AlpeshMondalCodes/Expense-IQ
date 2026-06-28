@@ -79,6 +79,7 @@ def signupUser(username,password,parent):
         data["profile"]["currency"]=pref.get("currency","")
         data["budget"]["monthly_limit"]=int(pref.get("monthly_limit",0))
         data["budget"]["threshold_percent"]=int(pref.get("threshold_percent",0))
+        data["budget"]["month"]=get_today().strftime("%Y-%m")
         data["settings"]["theme"]=pref.get("theme","dark")
     except AttributeError:
         messagebox.showerror("Closed","The Application has been closed by the user without submitting data\nRestart")
