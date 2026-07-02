@@ -105,6 +105,7 @@ def reset_userdata(username):
     default["budget"]["monthly_limit"]=data["budget"]["monthly_limit"]
     default["budget"]["threshold_percent"]=data["budget"]["threshold_percent"]
     default["settings"]["theme"]=data["settings"]["theme"]
+    default["budget"]["month"]=get_today().strftime("%Y-%m")
     write_json(f"data/users/{username}.json",default)
 
 def delete(username):

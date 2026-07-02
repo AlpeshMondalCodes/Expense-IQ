@@ -59,7 +59,6 @@ def Dashboard(content_frame,username):
         ctk.CTkLabel(transaction_frame,text="No Transactions").place(anchor="center",relx=0.5,rely=0.5)
     else:
         preveiw_transactions=transactions[:5]
-        print(preveiw_transactions)
     
 def transactions_tab(content_frame,user):
     clear_content(content_frame)
