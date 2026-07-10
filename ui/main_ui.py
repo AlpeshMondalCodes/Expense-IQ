@@ -1,7 +1,8 @@
+import math
 import customtkinter as ctk
 from ui.new_transaction import new_transaction
 from ui.theme import *
-from utils.file_handler import read_json, update_user_threshold,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
+from utils.file_handler import change_savings, read_json, update_user_threshold,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
 from utils.date_calculator import *
 from tkinter import messagebox
 from tkinter.ttk import Treeview
@@ -9,6 +10,14 @@ from tkinter.ttk import Treeview
 def clear_content(frame):
     for widget in frame.winfo_children():
         widget.destroy()
+
+def check_int(e):
+        char=e.char
+        valid="0123456789"
+        if e.keycode==8 or e.keycode==46:
+            return
+        if char not in valid:
+            return "break"
 
 def recall_budget_tab(callback,content_frame,username):
     clear_content(content_frame)
@@ -43,15 +52,14 @@ def fill_topbar(username,topbar):
 
 def Dashboard(content_frame,username):
     clear_content(content_frame)
-    expense_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"])
-    expense_frame.place(relwidth=0.475,relheight=0.475,relx=0.025,y=20)
+    expense_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"],corner_radius=24)
+    expense_frame.place(relwidth=0.475,relheight=0.475,relx=0.025,y=16)
     ctk.CTkLabel(expense_frame,text="Expense Frame",fg_color="red").pack(expand=True,fill="both")
 
-    budget_progressbar_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"])
-    budget_progressbar_frame.place(relwidth=0.475,relheight=0.475,relx=0.5,y=20)
-    ctk.CTkLabel(budget_progressbar_frame,text="Progressbar Frame",fg_color="green").pack(expand=True,fill="both")
+    savingsCard=ctk.CTkFrame(content_frame,fg_color=DARK["card"],corner_radius=24,border_width=1,border_color=GREEN_BORDER)
+    savingsCard.place(relwidth=0.475,relheight=0.47,relx=0.5,y=16)
 
-    transaction_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"])
+    transaction_frame=ctk.CTkFrame(content_frame,fg_color=DARK["frame"],corner_radius=24)
     transaction_frame.place(relwidth=0.95,relheight=0.475,relx=0.025,rely=0.5)
     user_json=open_user_json(username)
     transactions=user_json["data"]["transactions"]
@@ -60,6 +68,77 @@ def Dashboard(content_frame,username):
     else:
         preveiw_transactions=transactions[:5]
     
+    # Savings Card
+    def AnimateChange(increment,AnimateTarget,delay):
+        nonlocal saved,savings_progressbar,saved_label,target
+        saved=saved+increment
+        saved_label.configure(text=f"Saved : {saved}")
+        try:
+            val=saved/target
+            savings_progressbar.set(val)
+        except:
+            savings_progressbar.set(0)
+
+        if saved<AnimateTarget:
+            savingsCard.after(delay,lambda:AnimateChange(increment,AnimateTarget,delay))
+        if saved>=AnimateTarget:
+            saved=AnimateTarget
+            saved_label.configure(text=f"Saved : {saved}")
+            return       
+
+    def addSavings():
+        savingAmount=Value.get().strip() #strip to remove leading/trailing whitespace
+        current_saved=saved
+        try:
+            amount=int(savingAmount)
+        except ValueError:
+            messagebox.showerror("Invalid Input","Please enter a valid number")
+            return
+
+        if amount <= 0:
+            messagebox.showerror("Invalid Input","Please enter an amount greater than 0")
+            return
+
+        # updating user json
+        change_savings(username,saved+amount)
+        # UI
+        duration=1000
+        frame_delay=10
+        frames=duration//frame_delay
+        AnimateTarget=current_saved + amount
+        increment = max(1, math.ceil(amount / frames))
+
+        savingsCard.after(frame_delay,lambda:AnimateChange(increment,AnimateTarget,frame_delay))
+
+    title=ctk.CTkLabel(savingsCard,text="Savings",font=("Segoe UI",28,"bold"),text_color=DARK["text"])
+    title.pack(padx=20,pady=10,anchor="w")
+    target=user_json["budget"]["saving_goal"]
+    target_text=ctk.CTkLabel(savingsCard,text=f"Target : {target}",font=("Segoe UI",20),text_color=DARK["subtext"])
+    target_text.pack(padx=20,pady=(0,20),anchor="w")
+    saved=user_json["analytics"]["monthly_summary"]["savings"]
+    saved_label=ctk.CTkLabel(savingsCard,text=f"Saved : {saved}",font=("Segoe UI",24,"bold"),text_color=DARK["text"])
+    saved_label.pack(padx=20,pady=16,anchor="w")
+    savings_progressbar=ctk.CTkProgressBar(savingsCard,height=25,bg_color=DARK["card"],progress_color=SUCCESS)
+    savings_progressbar.pack(padx=10,fill="x",side="bottom",pady=30)
+
+    try:
+        val=saved/target
+        savings_progressbar.set(val)
+    except:
+        savings_progressbar.set(0)
+    # add savings frame
+
+    addFrame=ctk.CTkFrame(savingsCard,fg_color=DARK["card"],corner_radius=12,border_width=0)
+    addFrame.place(relx=0.5,rely=0.64,anchor="w",relwidth=0.48)
+    Value=ctk.StringVar(value=0)
+    addValue=ctk.CTkEntry(addFrame,placeholder_text="Amount",textvariable=Value,font=("Segoe UI",16),height=40,fg_color=DARK["frame"],border_width=0,corner_radius=12)
+    addValue.pack(anchor="s",side="left",expand=True,fill="x",padx=(5,4),pady=8)  
+    addValue.bind("<KeyPress>", lambda e: check_int(e))
+    addValue.bind("<FocusIn>", lambda e: addValue.delete(0, 'end') if addValue.get() == "0" else None)
+    
+    addBtn=ctk.CTkButton(addFrame,text="+",font=("JetBrainsMono",28,"bold"),width=40,height=40,fg_color=PRIMARY,hover_color=PRIMARY_HOVER,corner_radius=12,command=addSavings)
+    addBtn.pack(anchor="s",side="right",padx=(0,5),pady=8)
+
 def transactions_tab(content_frame,user):
     clear_content(content_frame)
     data=open_user_json(user)
@@ -199,6 +278,24 @@ def budget_tab(content_frame, username):
         except:
             messagebox.showerror("Invalid Input","Please enter a valid number")
             return
+
+    def edit_savings(username):
+        conformation_message="""Are you sure you want to edit the savings amount?\nThis action will ovrewrite the current saving amount with the new value you will enter\nTo add savings to your account go to the Dashboard tab and use the add savings option"""
+        conformation=messagebox.askyesno("Confirmation",conformation_message)
+        if not conformation:
+            return
+        menu=ctk.CTkInputDialog(text="Enter new savings amount")
+        new_saving=menu.get_input()
+        try:
+            new_saving=int(new_saving)
+            change_savings(username,new_saving)
+            messagebox.showinfo("Success","Savings updated successfully")
+            #reload UI
+            recall_budget_tab(budget_tab,content_frame,username)            
+        except:
+            messagebox.showerror("Invalid Input","Please enter a valid number")
+            return    
+    
     # Create a scrollable frame with grid layout inside content_frame
     main_scroll_frame = ctk.CTkScrollableFrame(
         content_frame,
@@ -218,7 +315,8 @@ def budget_tab(content_frame, username):
     main_scroll_frame.grid_rowconfigure(3, weight=0, minsize=120)    # Row 3: Extra
     main_scroll_frame.grid_rowconfigure(4, weight=0, minsize=80)    # Row 4: Extra
     main_scroll_frame.grid_rowconfigure(5, weight=0, minsize=80)    # Row 5: Extra
-    main_scroll_frame.grid_rowconfigure(6, weight=1)                # Extra space
+    main_scroll_frame.grid_rowconfigure(6, weight=0, minsize=80)
+    main_scroll_frame.grid_rowconfigure(7, weight=1)                # Extra space
 
     # Function to handle responsive layout
     # Function to handle responsive layout
@@ -231,16 +329,18 @@ def budget_tab(content_frame, username):
             card2.grid(row=1, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
             card3.grid(row=2, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
             card4.grid(row=3, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
-            card5.grid(row=4, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
-            card6.grid(row=5, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
-            card7.grid(row=6, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card_target.grid(row=4, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card5.grid(row=5, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card6.grid(row=6, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card7.grid(row=7, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
             
         elif available_width < 1500:
             # Two column layout
             budget_status_card.grid(row=0, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card2.grid(row=0, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
             card3.grid(row=1, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
-            card4.grid(row=1, column=1, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
+            card4.grid(row=1, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
+            card_target.grid(row=1, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card5.grid(row=2, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card6.grid(row=2, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card7.grid(row=2, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew") 
@@ -250,7 +350,8 @@ def budget_tab(content_frame, username):
             budget_status_card.grid(row=0, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card2.grid(row=0, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card3.grid(row=0, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
-            card4.grid(row=1, column=0, columnspan=3, padx=7.5, pady=7.5, sticky="nsew")
+            card4.grid(row=1, column=0, columnspan=2, padx=7.5, pady=7.5, sticky="nsew")
+            card_target.grid(row=1, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card5.grid(row=2, column=0, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card6.grid(row=2, column=1, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
             card7.grid(row=2, column=2, columnspan=1, padx=7.5, pady=7.5, sticky="nsew")
@@ -263,6 +364,7 @@ def budget_tab(content_frame, username):
     spent = budget_data["current_spent"]
     currency = data["profile"]["currency"]
     saving = data["analytics"]["monthly_summary"]["savings"]
+    target = data.get("budget", {}).get("saving_goal", 0)
     try:
         spent_percent=float(round(spent/monthly_limit*100,2))
     except ZeroDivisionError:
@@ -333,6 +435,34 @@ def budget_tab(content_frame, username):
     saving_percent=saving/monthly_income*100 if monthly_income>0 else 100
     saving_percent_lbl=ctk.CTkLabel(card3,text=f"{saving_percent:.1f}% of Income",font=("Segoe UI",12),text_color=DARK["subtext"])
     saving_percent_lbl.pack(anchor="w",padx=(20,0),pady=(0, 10))
+
+    edit_btn=ctk.CTkButton(card3,text="Edit",font=("Arial", 16,"bold"),width=40,height=30,corner_radius=8,fg_color=PRIMARY,hover_color=PRIMARY_HOVER,command=lambda:edit_savings(username))
+    edit_btn.place(anchor="se",relx=1,rely=1,x=-12,y=-12)
+
+    # ===== ROW X: SAVINGS TARGET CARD =====
+    card_target = ctk.CTkFrame(main_scroll_frame, fg_color=DARK['card'], border_width=1, border_color=DARK['border'], corner_radius=15)
+    t_title = ctk.CTkLabel(card_target, text="Savings Target", font=("Segoe UI",16,"bold"), text_color=DARK['text'])
+    t_title.pack(anchor="w", padx=(20,0), pady=(15, 10))
+    t_display = ctk.CTkLabel(card_target, text=f"Target: {currency} {int(target):,}", font=("Segoe UI",20), text_color=DARK['subtext'])
+    t_display.pack(anchor="w", padx=20, pady=(0, 10))
+
+    # simple inline update controls (minimal variables)
+    t_entry_var = ctk.StringVar(value=str(target))
+    t_entry = ctk.CTkEntry(card_target, textvariable=t_entry_var, width=200, height=36, placeholder_text="Enter new target", fg_color=DARK['bg'], border_color=DARK['border'], text_color=DARK['text'])
+    t_entry.pack(anchor="w", padx=20, pady=(0,10))
+    def update_target():
+        val = t_entry_var.get().strip()
+        try:
+            new = int(val) if val != "" else 0
+        except ValueError:
+            from tkinter import messagebox
+            messagebox.showerror("Invalid","Please enter a valid number")
+            return
+        data["budget"]["saving_goal"] = new
+        write_json(f"data/users/{username}.json", data)
+        t_display.configure(text=f"Target: {currency} {int(new):,}")
+    t_btn = ctk.CTkButton(card_target, text="Update Target", width=160, height=36, fg_color=PRIMARY, hover_color=PRIMARY_HOVER, command=update_target)
+    t_btn.pack(anchor="w", padx=20, pady=(0,20))
 
     #===== CARD 4: BUDGET PROGRESS CARD ====
     card4=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
@@ -551,9 +681,17 @@ def setting(content_frame, username, current_theme="dark"):
 
     def deletion():
         status=messagebox.askyesno("Are you sure?","This action will delete all your data and it is not recoverable.\nWould you like to proceed?")
+        askPass=ctk.CTkInputDialog(text="Enter your password",title="Verifcation Required")
+        entered_password=askPass.get_input()
+        data=open_user_json(username)
+        password=data["auth"]["password"]
+
         if status:
-            delete(username)
-            quit()
+            if entered_password==password:
+                delete(username)
+                quit()
+            else:
+                messagebox.showerror("Invalid Credentials","Enter valid password to delete account.")
 
     delete_btn=ctk.CTkButton(
         button_frame,

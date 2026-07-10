@@ -18,6 +18,7 @@
 
   "budget": {
     "monthly_limit": 10000,
+    "saving_goal": 0,
     "current_spent": 0,
     "threshold_percent": 0,
     "alert_sent": false,

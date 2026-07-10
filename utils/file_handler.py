@@ -81,6 +81,7 @@ def signupUser(username,password,parent):
         data["budget"]["threshold_percent"]=int(pref.get("threshold_percent",0))
         data["budget"]["month"]=get_today().strftime("%Y-%m")
         data["settings"]["theme"]=pref.get("theme","dark")
+        data["budget"]["saving_goal"]=int(pref.get("savings",0))
     except AttributeError:
         messagebox.showerror("Closed","The Application has been closed by the user without submitting data\nRestart")
         parent.quit()
@@ -186,4 +187,9 @@ def change_budget_limit(user,new_limit):
 def update_user_threshold(user,new_threshold):
     data=open_user_json(user)
     data["budget"]["threshold_percent"]=new_threshold
+    write_json(f"data/users/{user}.json",data)
+
+def change_savings(user,new_savings):
+    data=open_user_json(user)
+    data["analytics"]["monthly_summary"]["savings"]=new_savings
     write_json(f"data/users/{user}.json",data)

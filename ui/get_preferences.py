@@ -40,7 +40,7 @@ def get_preferences(parent):
             return "break"
 
     def enable_button():
-        if nameEntry.get()=="" or budgetEntry.get()=="" or currencySelection.get()=="" or themeValue.get()=="":
+        if nameEntry.get()=="" or budgetEntry.get()=="" or currencySelection.get()=="" or savings_entry.get()=="":
             submit_button.configure(state="disabled")
         else:
             submit_button.configure(state="normal")
@@ -51,26 +51,28 @@ def get_preferences(parent):
         budget=float(budgetEntry.get())
         threshold=thresholdValue.get()
         currency=currencySelection.get()
-        theme=themeValue.get()
+        theme="dark"
+        savings=float(savings_entry.get())
 
         data["name"]=name
         data["monthly_limit"]=budget
         data["threshold_percent"]=threshold
         data["currency"]=currency
         data["theme"]=theme
+        data["savings"]=savings
 
         #submit it to file_handler
         window.destroy()
 
-    questions=["What should we call you?","Set your monthly spending budget","Warn me when spending reaches ","Which currency do you follow","What is your theme preference"]
+    questions=["What should we call you?","Set your monthly spending budget","Warn me when spending reaches ","Which currency do you follow","Set your monthly Savings Target"]
     data={
         "name":"",
         "monthly_limit":0,
         "threshold_percent":0,
         "currency":"",
-        "theme":""
+        "savings":0
     }
-    keys=["name","monthly_limit","threshold_percent","currency","theme"]
+    keys=["name","monthly_limit","threshold_percent","currency","savings"]
     current_index=0
 
     left_frame=ctk.CTkFrame(window,fg_color=BG)
@@ -124,10 +126,9 @@ def get_preferences(parent):
 
     five=ctk.CTkLabel(right_frame,text=questions[4],text_color=TEXT,font=("Dubai Medium",20))
     five.pack(anchor="w",padx=20,pady=(0,16))
-    themeValue=ctk.StringVar(value="dark")
-    theme_toggle=ctk.CTkSegmentedButton(right_frame,values=["dark","light"],width=300,height=45,variable=themeValue,corner_radius=10,fg_color=SURFACE,text_color=TEXT,selected_hover_color=ACCENT_HOVER,selected_color=ACCENT,unselected_color=BG,unselected_hover_color=BG,font=("Segoe UI", 16, "bold"))
-    theme_toggle.pack(anchor="w",padx=20,pady=(0,20))
-    theme_toggle.pack_propagate(False)
+    savings_entry=ctk.CTkEntry(right_frame,placeholder_text="Savings....",width=150,text_color=TEXT,font=("Dubai Medium",20),border_color=BORDER,fg_color=SURFACE)
+    savings_entry.pack(anchor="w",padx=20,pady=(0,16))
+    savings_entry.bind("<KeyPress>",lambda e:check_int(e))
 
     submit_button=ctk.CTkButton(right_frame,text="Submit",width=200,height=50,corner_radius=10,fg_color=ACCENT,hover_color=ACCENT_HOVER,command=lambda:submit_data(),state="disabled")
     submit_button.pack(side="bottom",padx=60,pady=20,fill="x")
@@ -135,6 +136,7 @@ def get_preferences(parent):
     #binding all
     nameEntry.bind("<KeyRelease>",lambda e:enable_button())
     budgetEntry.bind("<KeyRelease>",lambda e:enable_button())
+    savings_entry.bind("<KeyRelease>",lambda e:enable_button())
     budgetEntry.bind("<Control-BackSpace>",lambda e:budgetEntry.delete(0, "end"))
     window.grab_set()
     window.wait_window()
