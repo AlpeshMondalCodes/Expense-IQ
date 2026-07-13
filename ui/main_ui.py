@@ -39,12 +39,12 @@ def fill_topbar(username,topbar):
     name_str=f" Welcome {str(name)} "
     balance=data["data"]["balance"]
     balance_str=f" Current Balance:{int(balance)} "
-    alert_btn=ctk.CTkButton(topbar,text="Alerts",font=("Calbri",16),fg_color=DARK["card"],corner_radius=10,hover_color=DANGER)
+    alert_btn=ctk.CTkButton(topbar,text="Alerts",font=(fontfamily,16),fg_color=DARK["card"],corner_radius=10,hover_color=DANGER)
     alert_btn.pack(side="right",padx=20,pady=5,ipady=5)
     left_frame = ctk.CTkFrame(topbar, fg_color="transparent")
     left_frame.pack(side="left", padx=10)
-    welcome_lbl=ctk.CTkLabel(left_frame,text=name_str,fg_color=DARK["card"],font=("Arial",16,"bold"),corner_radius=10)
-    balance_lbl=ctk.CTkLabel(left_frame,text=balance_str,fg_color=DARK["card"],font=("Arial",20),corner_radius=10)
+    welcome_lbl=ctk.CTkLabel(left_frame,text=name_str,fg_color=DARK["card"],font=(fontfamily,16,"bold"),corner_radius=10)
+    balance_lbl=ctk.CTkLabel(left_frame,text=balance_str,fg_color=DARK["card"],font=(fontfamily,20),corner_radius=10)
 
 
     welcome_lbl.pack( side="left",ipady=5)
@@ -71,20 +71,22 @@ def Dashboard(content_frame,username):
     # Savings Card
     def AnimateChange(increment,AnimateTarget,delay):
         nonlocal saved,savings_progressbar,saved_label,target
-        saved=saved+increment
+        saved = saved + increment
+
         saved_label.configure(text=f"Saved : {saved}")
         try:
-            val=saved/target
+            val = saved / target
             savings_progressbar.set(val)
-        except:
+        except ZeroDivisionError:
             savings_progressbar.set(0)
 
-        if saved<AnimateTarget:
-            savingsCard.after(delay,lambda:AnimateChange(increment,AnimateTarget,delay))
-        if saved>=AnimateTarget:
-            saved=AnimateTarget
+        if saved < AnimateTarget:
+            savingsCard.after(delay, lambda: AnimateChange(increment, AnimateTarget, delay))
+        else:
+            saved = AnimateTarget
             saved_label.configure(text=f"Saved : {saved}")
-            return       
+            saved_label.configure(font=(fontfamily,24,"bold"))
+            return
 
     def addSavings():
         savingAmount=Value.get().strip() #strip to remove leading/trailing whitespace
@@ -110,13 +112,13 @@ def Dashboard(content_frame,username):
 
         savingsCard.after(frame_delay,lambda:AnimateChange(increment,AnimateTarget,frame_delay))
 
-    title=ctk.CTkLabel(savingsCard,text="Savings",font=("Segoe UI",28,"bold"),text_color=DARK["text"])
+    title=ctk.CTkLabel(savingsCard,text="Savings",font=(fontfamily,28,"bold"),text_color=DARK["text"])
     title.pack(padx=20,pady=10,anchor="w")
     target=user_json["budget"]["saving_goal"]
-    target_text=ctk.CTkLabel(savingsCard,text=f"Target : {target}",font=("Segoe UI",20),text_color=DARK["subtext"])
+    target_text=ctk.CTkLabel(savingsCard,text=f"Target : {target}",font=(fontfamily,20),text_color=DARK["subtext"])
     target_text.pack(padx=20,pady=(0,20),anchor="w")
     saved=user_json["analytics"]["monthly_summary"]["savings"]
-    saved_label=ctk.CTkLabel(savingsCard,text=f"Saved : {saved}",font=("Segoe UI",24,"bold"),text_color=DARK["text"])
+    saved_label=ctk.CTkLabel(savingsCard,text=f"Saved : {saved}",font=(fontfamily,24,"bold"),text_color=DARK["text"])
     saved_label.pack(padx=20,pady=16,anchor="w")
     savings_progressbar=ctk.CTkProgressBar(savingsCard,height=25,bg_color=DARK["card"],progress_color=SUCCESS)
     savings_progressbar.pack(padx=10,fill="x",side="bottom",pady=30)
@@ -131,7 +133,7 @@ def Dashboard(content_frame,username):
     addFrame=ctk.CTkFrame(savingsCard,fg_color=DARK["card"],corner_radius=12,border_width=0)
     addFrame.place(relx=0.5,rely=0.64,anchor="w",relwidth=0.48)
     Value=ctk.StringVar(value=0)
-    addValue=ctk.CTkEntry(addFrame,placeholder_text="Amount",textvariable=Value,font=("Segoe UI",16),height=40,fg_color=DARK["frame"],border_width=0,corner_radius=12)
+    addValue=ctk.CTkEntry(addFrame,placeholder_text="Amount",textvariable=Value,font=(fontfamily,16),height=40,fg_color=DARK["frame"],border_width=0,corner_radius=12)
     addValue.pack(anchor="s",side="left",expand=True,fill="x",padx=(5,4),pady=8)  
     addValue.bind("<KeyPress>", lambda e: check_int(e))
     addValue.bind("<FocusIn>", lambda e: addValue.delete(0, 'end') if addValue.get() == "0" else None)
@@ -385,26 +387,26 @@ def budget_tab(content_frame, username):
     # ===== ROW 0: BUDGET STATUS CARD =====
     budget_status_card = ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
 
-    title=ctk.CTkLabel(budget_status_card,text="Budget Status",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
-    Monthly_Limit=ctk.CTkLabel(budget_status_card,text=f"Monthly Limit:{monthly_limit:,}",font=("Segoe UI",12),text_color=DARK["subtext"])
-    amount_display=ctk.CTkLabel(budget_status_card,text=f"{currency} {int(spent):,}({'100+' if spent_percent>100 else f'{spent_percent:.1f}'}%)",font=("Segoe UI",32,"bold"),text_color=DARK["primary"])
+    title=ctk.CTkLabel(budget_status_card,text="Budget Status",font=(fontfamily,16,"bold"),text_color=DARK["text"])
+    Monthly_Limit=ctk.CTkLabel(budget_status_card,text=f"Monthly Limit:{monthly_limit:,}",font=(fontfamily,12),text_color=DARK["subtext"])
+    amount_display=ctk.CTkLabel(budget_status_card,text=f"{currency} {int(spent):,}({'100+' if spent_percent>100 else f'{spent_percent:.1f}'}%)",font=(fontfamily,32,"bold"),text_color=DARK["primary"])
     title.pack(anchor="w",padx=(20,0),pady=(15, 10))
     Monthly_Limit.pack(anchor="w",padx=20)
     amount_display.pack(anchor="w",padx=20,pady=(0,10))
 
     #progressbarr part
-    spent_bar=ctk.CTkProgressBar(budget_status_card,height=12,corner_radius=6,bg_color=DARK["bg"])
+    spent_bar=ctk.CTkProgressBar(budget_status_card,height=12,corner_radius=6,bg_color=DARK["card"])
     spent_bar.pack(anchor="w",padx=20,pady=(0,12),fill="x")
     spent_bar.set(min(spent_percent/100, 1.0))
     spent_bar.configure(progress_color=status_color)
 
     badge_txt=["On Track","Caution","Over Budget"]
-    badge=ctk.CTkLabel(budget_status_card,text=badge_txt[index],text_color=DARK["bg"],fg_color=status_color,font=("Segoe UI",12,"bold"),corner_radius=8)
+    badge=ctk.CTkLabel(budget_status_card,text=badge_txt[index],text_color=DARK["bg"],fg_color=status_color,font=(fontfamily,12,"bold"),corner_radius=8)
     badge.pack(anchor="e",side="bottom",padx=12,pady=12)
 
     # ===== ROW 1: INCOME v/s SPENDING =====
     card2=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
-    title2=ctk.CTkLabel(card2,text="Income v/s Spending",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title2=ctk.CTkLabel(card2,text="Income v/s Spending",font=(fontfamily,16,"bold"),text_color=DARK["text"])
     title2.pack(anchor="w",padx=(20,0),pady=(15, 10))
     comparison_frame=ctk.CTkFrame(card2,fg_color="transparent")
     comparison_frame.pack(side="bottom",expand=True,fill="both",padx=20,pady=(0,40))
@@ -412,38 +414,38 @@ def budget_tab(content_frame, username):
     comparison_frame.columnconfigure(1,weight=1)
     comparison_frame.rowconfigure(0,weight=1)
     comparison_frame.rowconfigure(1,weight=8)
-    label_income=ctk.CTkLabel(comparison_frame,text="Monthly Income",font=("Segoe UI",12),text_color=DARK["subtext"])
+    label_income=ctk.CTkLabel(comparison_frame,text="Monthly Income",font=(fontfamily,12),text_color=DARK["subtext"])
     label_income.grid(row=0,column=0,sticky="e",padx=20,pady=(10,0))
-    income=ctk.CTkLabel(comparison_frame,text=f"\u2191 {currency} {int(monthly_income):,}",font=("Segoe UI",28),text_color=GAIN_COLOR)
+    income=ctk.CTkLabel(comparison_frame,text=f"\u2191 {currency} {int(monthly_income):,}",font=(fontfamily,28),text_color=GAIN_COLOR)
     income.grid(row=1,column=0,sticky="e",padx=20,pady=(10,0))
 
-    divider=ctk.CTkLabel(comparison_frame,text="v/s",font=("Segoe UI",16,"bold"),text_color=DARK["subtext"])
+    divider=ctk.CTkLabel(comparison_frame,text="v/s",font=(fontfamily,16,"bold"),text_color=DARK["subtext"])
     divider.grid(row=0,column=1,sticky="ew",padx=10,pady=(10,0))
 
-    label_spent=ctk.CTkLabel(comparison_frame,text=f"Spent",font=("Segoe UI",12),text_color=DARK["subtext"])
+    label_spent=ctk.CTkLabel(comparison_frame,text=f"Spent",font=(fontfamily,12),text_color=DARK["subtext"])
     label_spent.grid(row=0,column=2,sticky="w",padx=20,pady=(10,0))
-    spent_lbl=ctk.CTkLabel(comparison_frame,text=f"\u2193 {currency} {int(spent):,}",font=("Segoe UI",28),text_color=LOSS_COLOR)
+    spent_lbl=ctk.CTkLabel(comparison_frame,text=f"\u2193 {currency} {int(spent):,}",font=(fontfamily,28),text_color=LOSS_COLOR)
     spent_lbl.grid(row=1,column=2,sticky="w",padx=20,pady=(10,0))
 
     #===== ROW 2: SAVINGS CARD=====
     card3=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=2,border_color=PRIMARY,corner_radius=15) #highlighted border
-    title3=ctk.CTkLabel(card3,text="Monthly Savings",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title3=ctk.CTkLabel(card3,text="Monthly Savings",font=(fontfamily,16,"bold"),text_color=DARK["text"])
     title3.pack(anchor="w",padx=(20,0),pady=(15, 10))
-    savings=ctk.CTkLabel(card3,text=f"{currency} {int(saving):,}",font=("Segoe UI",28),text_color=GAIN_COLOR)
+    savings=ctk.CTkLabel(card3,text=f"{currency} {int(saving):,}",font=(fontfamily,28),text_color=GAIN_COLOR)
     savings.pack(anchor="w",padx=(20,0),pady=(0, 10))
 
     saving_percent=saving/monthly_income*100 if monthly_income>0 else 100
-    saving_percent_lbl=ctk.CTkLabel(card3,text=f"{saving_percent:.1f}% of Income",font=("Segoe UI",12),text_color=DARK["subtext"])
+    saving_percent_lbl=ctk.CTkLabel(card3,text=f"{saving_percent:.1f}% of Income",font=(fontfamily,12),text_color=DARK["subtext"])
     saving_percent_lbl.pack(anchor="w",padx=(20,0),pady=(0, 10))
 
-    edit_btn=ctk.CTkButton(card3,text="Edit",font=("Arial", 16,"bold"),width=40,height=30,corner_radius=8,fg_color=PRIMARY,hover_color=PRIMARY_HOVER,command=lambda:edit_savings(username))
+    edit_btn=ctk.CTkButton(card3,text="Edit",font=(fontfamily, 16,"bold"),width=40,height=30,corner_radius=8,fg_color=PRIMARY,hover_color=PRIMARY_HOVER,command=lambda:edit_savings(username))
     edit_btn.place(anchor="se",relx=1,rely=1,x=-12,y=-12)
 
     # ===== ROW X: SAVINGS TARGET CARD =====
     card_target = ctk.CTkFrame(main_scroll_frame, fg_color=DARK['card'], border_width=1, border_color=DARK['border'], corner_radius=15)
-    t_title = ctk.CTkLabel(card_target, text="Savings Target", font=("Segoe UI",16,"bold"), text_color=DARK['text'])
+    t_title = ctk.CTkLabel(card_target, text="Savings Target", font=(fontfamily,16,"bold"), text_color=DARK['text'])
     t_title.pack(anchor="w", padx=(20,0), pady=(15, 10))
-    t_display = ctk.CTkLabel(card_target, text=f"Target: {currency} {int(target):,}", font=("Segoe UI",20), text_color=DARK['subtext'])
+    t_display = ctk.CTkLabel(card_target, text=f"Target: {currency} {int(target):,}", font=(fontfamily,20), text_color=DARK['subtext'])
     t_display.pack(anchor="w", padx=20, pady=(0, 10))
 
     # simple inline update controls (minimal variables)
@@ -466,35 +468,35 @@ def budget_tab(content_frame, username):
 
     #===== CARD 4: BUDGET PROGRESS CARD ====
     card4=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
-    title4=ctk.CTkLabel(card4,text="Budget Progress",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title4=ctk.CTkLabel(card4,text="Budget Progress",font=(fontfamily,16,"bold"),text_color=DARK["text"])
     title4.pack(anchor="w",padx=(20,0),pady=(15, 10))
-    info=ctk.CTkLabel(card4,text=f"You have spent {spent_percent:.1f}% of your monthly budget",font=("Segoe UI",12),text_color=DARK["subtext"])
+    info=ctk.CTkLabel(card4,text=f"You have spent {spent_percent:.1f}% of your monthly budget",font=(fontfamily,12),text_color=DARK["subtext"])
     info.pack(anchor="w",padx=(20,0),pady=(0, 10))
-    progress_bar=ctk.CTkProgressBar(card4,height=20,corner_radius=10,bg_color=DARK["bg"])
+    progress_bar=ctk.CTkProgressBar(card4,height=20,corner_radius=10,bg_color=DARK["card"])
     progress_bar.pack(fill="x",padx=20,pady=(0, 20))
     progress_bar.set(min(spent_percent/100, 1.0))
     progress_bar.configure(progress_color=status_color)
 
     #===== CARD 5: QUICK STATS CARD =====
     card5=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
-    title5=ctk.CTkLabel(card5,text="Quick Stats",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title5=ctk.CTkLabel(card5,text="Quick Stats",font=(fontfamily,16,"bold"),text_color=DARK["text"])
     title5.pack(anchor="w",padx=(20,0),pady=(15, 10))
     days_left=get_days_remaining_in_month()
-    days_remaining=ctk.CTkLabel(card5,text=f"\U0001F4C5 Days Remaining: {days_left}",font=("Segoe UI",12),text_color=DARK["subtext"])
+    days_remaining=ctk.CTkLabel(card5,text=f"\U0001F4C5 Days Remaining: {days_left}",font=(fontfamily,12),text_color=DARK["subtext"])
     days_remaining.pack(anchor="w",padx=(20,0),pady=(0, 10))
     total_days=get_total_days()
     daily_avg=int(spent/int(total_days-days_left) if days_left>0 else 0)
-    daily_average=ctk.CTkLabel(card5,text=f"\U0001F4CA Daily Average: {currency} {daily_avg:.2f}/ Day",font=("Segoe UI",12),text_color=DARK["subtext"])
+    daily_average=ctk.CTkLabel(card5,text=f"\U0001F4CA Daily Average: {currency} {daily_avg:.2f}/ Day",font=(fontfamily,12),text_color=DARK["subtext"])
     daily_average.pack(anchor="w",padx=(20,0),pady=(0, 10))
     suggesstions_txt=["You are doing Well.","Try to limit unnecessary expenses.","No more money left in balance to spend"]
-    suggesstions_lbl=ctk.CTkLabel(card5,text=f"\U0001F914 Suggestion: {suggesstions_txt[index]}",font=("Segoe UI",12),text_color=DARK["subtext"])
+    suggesstions_lbl=ctk.CTkLabel(card5,text=f"\U0001F914 Suggestion: {suggesstions_txt[index]}",font=(fontfamily,12),text_color=DARK["subtext"])
     suggesstions_lbl.pack(anchor="w",padx=(20,0),pady=(0, 10))
 
     #=====CARD 6: EDIT BUDGET CARD =====
     card6=ctk.CTkFrame(main_scroll_frame,fg_color=DARK['card'],border_width=1,border_color=DARK["border"],corner_radius=15)
-    title6=ctk.CTkLabel(card6,text="Edit Budget",font=("Segoe UI",16,"bold"),text_color=DARK["text"])
+    title6=ctk.CTkLabel(card6,text="Edit Budget",font=(fontfamily,16,"bold"),text_color=DARK["text"])
     title6.pack(anchor="w",padx=(20,0),pady=(15))
-    current_data=ctk.CTkLabel(card6,text=f"{currency} {int(monthly_limit):,}",font=("Segoe UI",28),text_color=DARK["subtext"])
+    current_data=ctk.CTkLabel(card6,text=f"{currency} {int(monthly_limit):,}",font=(fontfamily,28),text_color=DARK["subtext"])
     current_data.pack(anchor="w",padx=(20,0),pady=(0, 10))
     edit_btn=ctk.CTkButton(card6,text="Edit Monthly Limit",width=200,height=40,corner_radius=10,fg_color=PRIMARY,hover_color=PRIMARY_HOVER,command=edit_budget)
     edit_btn.pack(anchor="w",padx=(20,0),pady=(0, 20))
@@ -502,9 +504,9 @@ def budget_tab(content_frame, username):
     #=====CARD 7: ALERT THRESHOLD CARD =====
 
     card7 = ctk.CTkFrame(main_scroll_frame, fg_color=DARK['card'], border_width=1, border_color=DARK["border"], corner_radius=15)
-    title7 = ctk.CTkLabel(card7, text="Alert Settings", font=("Segoe UI", 16, "bold"), text_color=DARK["text"])
+    title7 = ctk.CTkLabel(card7, text="Alert Settings", font=(fontfamily, 16, "bold"), text_color=DARK["text"])
     title7.pack(anchor="w", padx=(20,0), pady=(15, 10))
-    edit_threshold_lbl = ctk.CTkLabel(card7, text=f"Current Threshold: {threshold}%", font=("Segoe UI", 12), text_color=DARK["subtext"])
+    edit_threshold_lbl = ctk.CTkLabel(card7, text=f"Current Threshold: {threshold}%", font=(fontfamily, 12), text_color=DARK["subtext"])
     edit_threshold_lbl.pack(anchor="w", padx=(20,0), pady=(0, 10))
     threshold_entry = ctk.CTkEntry(card7, height=40, corner_radius=10, placeholder_text=f"{threshold}", placeholder_text_color=DARK["subtext"], fg_color=DARK["bg"], border_color=DARK["border"])
     threshold_entry.pack(anchor="w",fill="x", padx=20, pady=(0, 20))
@@ -539,9 +541,9 @@ def setting(content_frame, username, current_theme="dark"):
     theme_card.pack(side="left",padx=30, pady=30,anchor="nw")
 
     # ===== Title =====
-    title = ctk.CTkLabel(theme_card,text="Appearance",font=("Segoe UI", 26, "bold"),text_color=THEME["text"])
+    title = ctk.CTkLabel(theme_card,text="Appearance",font=(fontfamily, 26, "bold"),text_color=THEME["text"])
     title.pack(anchor="w", padx=20, pady=(15, 5))
-    subtitle = ctk.CTkLabel(theme_card,text="Choose your theme",font=("Segoe UI", 16),text_color=THEME["subtext"])
+    subtitle = ctk.CTkLabel(theme_card,text="Choose your theme",font=(fontfamily, 16),text_color=THEME["subtext"])
     subtitle.pack(anchor="w", padx=20, pady=(0, 15))
 
     theme_var = ctk.StringVar()
@@ -568,7 +570,7 @@ def setting(content_frame, username, current_theme="dark"):
         selected_hover_color=THEME["primary_hover"],
         unselected_color=THEME["card"],
         text_color=THEME["text"],
-        font=("Segoe UI", 16, "bold")
+        font=(fontfamily, 16, "bold")
     )
     themeToggle.pack(padx=20, pady=(0, 20))
 
@@ -581,9 +583,9 @@ def setting(content_frame, username, current_theme="dark"):
     currency_card = ctk.CTkFrame(top_left_card,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
     currency_card.pack(side="left",padx=(0,30), pady=30,anchor="nw")
     # ===== Title =====
-    title2 = ctk.CTkLabel(currency_card,text="Currency",font=("Segoe UI", 26, "bold"),text_color=THEME["text"])
+    title2 = ctk.CTkLabel(currency_card,text="Currency",font=(fontfamily, 26, "bold"),text_color=THEME["text"])
     title2.pack(anchor="w", padx=20, pady=(15, 5))
-    subtitle2 = ctk.CTkLabel(currency_card,text="Choose your Currency",font=("Segoe UI", 16),text_color=THEME["subtext"])
+    subtitle2 = ctk.CTkLabel(currency_card,text="Choose your Currency",font=(fontfamily, 16),text_color=THEME["subtext"])
     subtitle2.pack(anchor="w", padx=20, pady=(0, 15))
 
     def SwitchCurrency(value):
@@ -605,7 +607,7 @@ def setting(content_frame, username, current_theme="dark"):
         button_color=THEME["primary"],
         button_hover_color=THEME["primary_hover"],
         dropdown_hover_color=THEME["card"],
-        font=("Segoe UI", 16, "bold")
+        font=(fontfamily, 16, "bold")
     )
     currency_menu.pack(padx=20, pady=(0, 20))
 
@@ -617,9 +619,9 @@ def setting(content_frame, username, current_theme="dark"):
     password_card = ctk.CTkFrame(password_Frame,fg_color=THEME["card"],corner_radius=15,border_width=2,border_color=THEME["border"])
     password_card.pack(side="left",padx=(0,30), pady=30,anchor="nw")
     # ===== Title =====
-    title3 = ctk.CTkLabel(password_card,text="Change Password",font=("Segoe UI", 26, "bold"),text_color=THEME["text"])
+    title3 = ctk.CTkLabel(password_card,text="Change Password",font=(fontfamily, 26, "bold"),text_color=THEME["text"])
     title3.pack(anchor="w", padx=20, pady=(15, 5))
-    subtitle3 = ctk.CTkLabel(password_card,text="Enter your new password",font=("Segoe UI", 16),text_color=THEME["subtext"])
+    subtitle3 = ctk.CTkLabel(password_card,text="Enter your new password",font=(fontfamily, 16),text_color=THEME["subtext"])
     subtitle3.pack(anchor="w", padx=20, pady=(0, 15))
 
     passEntry=ctk.CTkEntry(
@@ -633,7 +635,7 @@ def setting(content_frame, username, current_theme="dark"):
         placeholder_text_color=THEME["subtext"],
         text_color=THEME["text"],
         placeholder_text=data["auth"]["password"],
-        font=("Segoe UI", 16, "bold")
+        font=(fontfamily, 16, "bold")
     )
     update_btn=ctk.CTkButton(
         password_card,
@@ -733,6 +735,10 @@ def main_ui(username,theme,login,remember):
     else:
         data["username"]=""
     write_json("data/app.json",data)
+    #$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$44
+    font=ctk.FontManager.load_font(data.get("font","ui/assets/manrope-medium.ttf"))
+    global fontfamily
+    fontfamily="Manrope"
 ################################################################3
     try:
         login.destroy()
@@ -752,14 +758,14 @@ def main_ui(username,theme,login,remember):
     sidebar.pack(side="left",fill="y")
     sidebar.pack_propagate(False)
     #------ SIDEBAR BUTTONS ------------------------------------------------------------------------------
-    today=ctk.CTkLabel(sidebar,text=str(get_today()),font=("Segoe UI",20,"bold"),fg_color="transparent")
-    day=ctk.CTkLabel(sidebar,text=str(get_weekday_formatted()),font=("Segoe UI",16,"bold"),fg_color="transparent")
-    dashboard=ctk.CTkButton(sidebar,text="Dashboard",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:Dashboard(content_frame,username))
-    transaction=ctk.CTkButton(sidebar,text="Transaction",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:transactions_tab(content_frame,username))
-    budget=ctk.CTkButton(sidebar,text="Budget",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:budget_tab(content_frame,username))
-    analytics=ctk.CTkButton(sidebar,text="Analytics",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45)
-    settings=ctk.CTkButton(sidebar,text="Settings",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:setting(content_frame,username))
-    logout=ctk.CTkButton(sidebar,text="Logout",font=("Segoe UI Semibold",24),fg_color=DARK["card"],hover_color=DANGER,corner_radius=10,border_color=RED_BORDER,border_width=1,height=45,command=lambda:[root.quit(),root.after(10,quit())]) # used quit instead of destroy to quit safely
+    today=ctk.CTkLabel(sidebar,text=str(get_today()),font=(fontfamily,20,"bold"),fg_color="transparent")
+    day=ctk.CTkLabel(sidebar,text=str(get_weekday_formatted()),font=(fontfamily,16,"bold"),fg_color="transparent")
+    dashboard=ctk.CTkButton(sidebar,text="Dashboard",font=(fontfamily,24,"bold"),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:Dashboard(content_frame,username))
+    transaction=ctk.CTkButton(sidebar,text="Transaction",font=(fontfamily,24,"bold"),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:transactions_tab(content_frame,username))
+    budget=ctk.CTkButton(sidebar,text="Budget",font=(fontfamily,24,"bold"),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:budget_tab(content_frame,username))
+    analytics=ctk.CTkButton(sidebar,text="Analytics",font=(fontfamily,24,"bold"),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45)
+    settings=ctk.CTkButton(sidebar,text="Settings",font=(fontfamily,24,"bold"),fg_color=DARK["card"],hover_color=DARK["border"],corner_radius=10,border_color=PRIMARY_HOVER,border_width=1,height=45,command=lambda:setting(content_frame,username))
+    logout=ctk.CTkButton(sidebar,text="Logout",font=(fontfamily,24,"bold"),fg_color=DARK["card"],hover_color=DANGER,corner_radius=10,border_color=RED_BORDER,border_width=1,height=45,command=lambda:[root.quit(),root.after(10,quit())]) # used quit instead of destroy to quit safely
 
     today.pack(pady=(15,0),padx=10,fill="x")
     day.pack(pady=(0,15),padx=10,fill="x")

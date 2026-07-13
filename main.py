@@ -37,12 +37,14 @@ def login_remembered_user():
     main_ui(username,theme,window,1)
 
 if app_data["remember"]==1:
-    login_remembered_user()
     if ensure_files()==False:
         messagebox.showerror("No File Exists","Some of the required files are missing")
         quit()
+    else:
+        login_remembered_user()
 else:
-    login_window(on_login)
     if ensure_files()==False:
         messagebox.showerror("No File Exists","Some of the required files are missing")
         quit()
+    else:
+        login_window(on_login)

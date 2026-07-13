@@ -6,9 +6,11 @@ from tkinter import messagebox,Tk
 from utils.file_handler import get_user
 from utils.monthly_updater import monthly_update
 from utils.date_calculator import get_today
+import requests
 
 required_directories=["data","data/users","ui","ui/assets","utils"]
-required_files=["utils/file_handler.py","utils/date_calculator.py","ui/theme.py","ui/main_ui.py","ui/login.py","ui/get_preferences.py","ui/assets/dark.png","ui/assets/light.png","data/defaults.json","main.py"]
+required_files=["utils/file_handler.py","utils/date_calculator.py","ui/theme.py","ui/main_ui.py","ui/login.py","ui/get_preferences.py","ui/assets/dark.png","ui/assets/light.png","data/defaults.json","main.py","ui/new_transaction.py","data/app.json","utils/monthly_updater.py"]
+fonts=["ui/assets/manrope-medium.ttf","ui/assets/manrope-regular.ttf","ui/assets/manrope-bold.ttf"]
 
 import json
 
@@ -95,6 +97,23 @@ def ensure_user_months():
             print(f"Updating {user}: {month} -> {current_month}")
             monthly_update(user)
         
+def fonts_check():
+    for font in fonts:
+        if Path(font).exists()==False:
+            download=messagebox.askyesno("Font Missing", f"Required font {font} is missing. Would you like to download it?")
+            if download:
+                urls = ["https://raw.githubusercontent.com/AlpeshMondalCodes/Expense-IQ/refs/heads/main/ui/assets/manrope-medium.ttf","https://raw.githubusercontent.com/AlpeshMondalCodes/Expense-IQ/refs/heads/main/ui/assets/manrope-regular.ttf","https://raw.githubusercontent.com/AlpeshMondalCodes/Expense-IQ/refs/heads/main/ui/assets/manrope-bold.ttf"]  # Replace with actual URL
+                try:
+                    for url in urls:
+                        if Path(fonts[urls.index(url)]).exists():
+                            continue  # Skip if the font already exists
+                        response = requests.get(url, timeout=10)
+                        local_name = fonts[urls.index(url)]  # Get corresponding local font name
+                        with open(local_name, "wb") as f:
+                            f.write(response.content)
+                except Exception as e:
+                    messagebox.showerror("Download Failed", f"Failed to download fonts: {e}Continuing with Segoe UI,may cause UI issues")
 ensure_files()
 ensure_json_structure()
 ensure_user_months()
+fonts_check()

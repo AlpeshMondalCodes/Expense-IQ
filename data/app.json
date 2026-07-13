@@ -1,6 +1,6 @@
 {
-    "remember": 0,
-    "username": "",
+    "remember": 1,
+    "username": "naya banda",
     "categories": [
         "Food",
         "Transport",
@@ -12,5 +12,6 @@
         "Travel",
         "Other"
     ],
-    "month_processed": "07"
+    "month_processed": "07",
+    "font": "ui/assets/manrope-medium.ttf"
 }
