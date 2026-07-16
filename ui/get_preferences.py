@@ -47,12 +47,22 @@ def get_preferences(parent):
 
     def submit_data():
         nonlocal data
-        name=nameEntry.get()
-        budget=float(budgetEntry.get())
+        name=nameEntry.get().strip()
+        budget_text=budgetEntry.get().strip()
+        savings_text=savings_entry.get().strip()
+
+        if not name or not budget_text or not savings_text or not currencySelection.get():
+            return
+
+        try:
+            budget=float(budget_text)
+            savings=float(savings_text)
+        except ValueError:
+            return
+
         threshold=thresholdValue.get()
         currency=currencySelection.get()
         theme="dark"
-        savings=float(savings_entry.get())
 
         data["name"]=name
         data["monthly_limit"]=budget
@@ -61,7 +71,11 @@ def get_preferences(parent):
         data["theme"]=theme
         data["savings"]=savings
 
-        #submit it to file_handler
+        window.destroy()
+
+    def cancel_window():
+        nonlocal data
+        data = None
         window.destroy()
 
     questions=["What should we call you?","Set your monthly spending budget","Warn me when spending reaches ","Which currency do you follow","Set your monthly Savings Target"]
@@ -130,14 +144,21 @@ def get_preferences(parent):
     savings_entry.pack(anchor="w",padx=20,pady=(0,16))
     savings_entry.bind("<KeyPress>",lambda e:check_int(e))
 
-    submit_button=ctk.CTkButton(right_frame,text="Submit",width=200,height=50,corner_radius=10,fg_color=ACCENT,hover_color=ACCENT_HOVER,command=lambda:submit_data(),state="disabled")
-    submit_button.pack(side="bottom",padx=60,pady=20,fill="x")
+    button_row = ctk.CTkFrame(right_frame, fg_color="transparent")
+    button_row.pack(side="bottom", padx=60, pady=20, fill="x")
+
+    cancel_button=ctk.CTkButton(button_row,text="Cancel",width=90,height=50,corner_radius=10,fg_color=BORDER,hover_color=ACCENT_HOVER,command=cancel_window)
+    cancel_button.pack(side="left")
+
+    submit_button=ctk.CTkButton(button_row,text="Submit",width=200,height=50,corner_radius=10,fg_color=ACCENT,hover_color=ACCENT_HOVER,command=lambda:submit_data(),state="disabled")
+    submit_button.pack(side="right")
 
     #binding all
     nameEntry.bind("<KeyRelease>",lambda e:enable_button())
     budgetEntry.bind("<KeyRelease>",lambda e:enable_button())
     savings_entry.bind("<KeyRelease>",lambda e:enable_button())
     budgetEntry.bind("<Control-BackSpace>",lambda e:budgetEntry.delete(0, "end"))
+    window.protocol("WM_DELETE_WINDOW", cancel_window)
     window.grab_set()
     window.wait_window()
     return data

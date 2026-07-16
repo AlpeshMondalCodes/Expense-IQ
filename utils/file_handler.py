@@ -3,6 +3,29 @@ import os
 from utils.date_calculator import get_today
 from ui.theme import *
 
+
+def has_valid_preferences(pref):
+    if not isinstance(pref, dict):
+        return False
+
+    required_fields = [
+        ("name", str),
+        ("currency", str),
+        ("monthly_limit", (int, float)),
+        ("threshold_percent", (int, float)),
+        ("savings", (int, float)),
+    ]
+
+    for field_name, expected_type in required_fields:
+        value = pref.get(field_name)
+        if value in (None, ""):
+            return False
+        if not isinstance(value, expected_type):
+            return False
+
+    return bool(str(pref.get("name", "")).strip())
+
+
 def get_user():
     usernames=os.listdir("data/users")
     users=[]
@@ -43,15 +66,17 @@ def check_pass(username,user_pass):
         logged_in=False
     return logged_in
 
-def check_user_exist(username_entry):
+def check_user_exist(username_entry,info_lbl):
     entered_name=username_entry.get()
     users=get_user()
     if entered_name in users:
         available_space=False
         border=DARK["primary"]
+        info_lbl.set(value="Username already exists")
     else:
         available_space=True
         border=GREEN_BORDER
+        info_lbl.set(value="")
     #handling placeholder text "Username"
     if entered_name== "Username":
         border=DARK["primary"]
@@ -74,19 +99,31 @@ def signupUser(username,password,parent):
     profile["name"]=username
 
     pref=get_preferences(parent)
-    try:
-        data["profile"]["name"]=pref.get("name","")
-        data["profile"]["currency"]=pref.get("currency","")
-        data["budget"]["monthly_limit"]=int(pref.get("monthly_limit",0))
-        data["budget"]["threshold_percent"]=int(pref.get("threshold_percent",0))
-        data["budget"]["month"]=get_today().strftime("%Y-%m")
-        data["settings"]["theme"]=pref.get("theme","dark")
-        data["budget"]["saving_goal"]=int(pref.get("savings",0))
-    except AttributeError:
+    if pref is None:
         messagebox.showerror("Closed","The Application has been closed by the user without submitting data\nRestart")
         parent.quit()
         parent.destroy()
-        return
+        return False
+
+    if not has_valid_preferences(pref):
+        messagebox.showerror("Incomplete Setup","Please complete the setup form before continuing")
+        parent.quit()
+        parent.destroy()
+        return False
+
+    try:
+        data["profile"]["name"]=str(pref.get("name",""))
+        data["profile"]["currency"]=str(pref.get("currency",""))
+        data["budget"]["monthly_limit"]=int(pref.get("monthly_limit",0))
+        data["budget"]["threshold_percent"]=int(pref.get("threshold_percent",0))
+        data["budget"]["month"]=get_today().strftime("%Y-%m")
+        data["settings"]["theme"]=str(pref.get("theme","dark"))
+        data["budget"]["saving_goal"]=int(pref.get("savings",0))
+    except (AttributeError, TypeError, ValueError):
+        messagebox.showerror("Closed","The Application has been closed by the user without submitting data\nRestart")
+        parent.quit()
+        parent.destroy()
+        return False
     write_json(f"data/users/{username}.json",data)
     return True
 

@@ -22,7 +22,8 @@ def login_window(on_login):
     root.configure(fg_color=(LIGHT["bg"],DARK["bg"]))
     # root._set_appearance_mode("light")
     root.geometry("1100x720")
-    root.bind("<Escape>",lambda event:root.destroy())
+    root.bind("<Control-w>",lambda event:root.destroy())
+    root.bind("<Control-W>",lambda event:root.destroy())
     centered_window(root,1100,720)
     root.minsize(660,500)
     
@@ -165,19 +166,18 @@ def login_window(on_login):
         
 
     def checkmatch():
-        check_user_exist(username_entry)
+        check_user_exist(username_entry,info)
         if password_entry.get()==conform_password_entry.get() and password_entry.get()!="Password" and username_entry.cget("border_color")=="#94d3a2":
             signUpBtn.configure(state="enabled",cursor="hand2")
             animate_signup_btn()
         else:
             signUpBtn.configure(state="disabled",cursor="hand2")
 
-
     username_entry=ctk.CTkEntry(SignupFrame,border_color=LIGHT["primary"],fg_color=(LIGHT["card"],DARK["card"]),corner_radius=5,width=250,height=30,border_width=1)
     username_entry.pack(pady=(50,15))
     username_entry.insert(0,"Username")
     username_entry.bind('<FocusIn>',lambda event:clearentry(username_entry))
-    username_entry.bind('<FocusOut>',lambda event:[fill_entry(username_entry,"Username"),check_user_exist(username_entry)])
+    username_entry.bind('<FocusOut>',lambda event:[fill_entry(username_entry,"Username"),check_user_exist(username_entry,info)])
 
     password_entry=ctk.CTkEntry(SignupFrame,border_color=LIGHT["primary"],fg_color=(LIGHT["card"],DARK["card"]),corner_radius=5,width=250,height=30,border_width=1)
     password_entry.pack(pady=(0,15))
@@ -192,6 +192,14 @@ def login_window(on_login):
     conform_password_entry.bind('<FocusIn>',lambda event:[clearentry(conform_password_entry),check_match()])
     conform_password_entry.bind('<FocusOut>',lambda event:fill_entry(conform_password_entry,"Conform Password"))
     conform_password_entry.bind('<KeyPress>',lambda event:check_match())
+
+    username_entry.bind("<Control-BackSpace>",lambda e:username_entry.delete(0, "end"))
+    password_entry.bind("<Control-BackSpace>",lambda e:password_entry.delete(0, "end"))
+    conform_password_entry.bind("<Control-BackSpace>",lambda e:conform_password_entry.delete(0, "end"))
+
+    info=ctk.StringVar(value="")
+    information=ctk.CTkLabel(SignupFrame,textvariable=info,font=("Arial",11),text_color=DANGER)
+    information.place(relx=0.5,rely=0.55,anchor="center")
 
     def signUp(username,password):
         done=signupUser(username,password,root)

@@ -5,7 +5,6 @@ from ui.theme import *
 from utils.file_handler import change_savings, read_json, update_user_threshold,write_json,update_password,reset_userdata,delete,open_user_json,get_remember_default,forgot_user
 from utils.date_calculator import *
 from tkinter import messagebox
-from tkinter.ttk import Treeview
 
 def clear_content(frame):
     for widget in frame.winfo_children():
@@ -36,7 +35,7 @@ def fill_topbar(username,topbar):
 
     data=read_json(f"data/users/{username}.json")
     name=data["profile"]["name"]
-    name_str=f" Welcome {str(name)} "
+    name_str=f" Welcome, {str(name)} "
     balance=data["data"]["balance"]
     balance_str=f" Current Balance:{int(balance)} "
     alert_btn=ctk.CTkButton(topbar,text="Alerts",font=(fontfamily,16),fg_color=DARK["card"],corner_radius=10,hover_color=DANGER)
@@ -49,6 +48,11 @@ def fill_topbar(username,topbar):
 
     welcome_lbl.pack( side="left",ipady=5)
     balance_lbl.pack( side="left", padx=10,ipady=5)
+
+    welcome_lbl.bind('<Enter>', lambda e: welcome_lbl.configure(fg_color=DARK["card_hover"]))
+    balance_lbl.bind('<Enter>', lambda e: balance_lbl.configure(fg_color=DARK["card_hover"]))
+    welcome_lbl.bind('<Leave>', lambda e: welcome_lbl.configure(fg_color=DARK["card"]))
+    balance_lbl.bind('<Leave>', lambda e: balance_lbl.configure(fg_color=DARK["card"]))
 
 def Dashboard(content_frame,username):
     clear_content(content_frame)
@@ -211,6 +215,10 @@ def transactions_tab(content_frame,user):
             uid=selected[1]
             deleted_amount=0
             deleted_expense=True
+
+            if uid==None:
+                messagebox.showerror("No Transaction Selected","Please select a transaction to delete")
+                return
             
             # Find and remove transaction
             for txn in transactions[:]:
@@ -231,7 +239,7 @@ def transactions_tab(content_frame,user):
                 data["data"]["balance"]+=deleted_amount
                 data["budget"]["current_spent"]-=deleted_amount
                 data["analytics"]["monthly_summary"]["Expense"]-=deleted_amount
-            if not deleted_expense:
+            if not deleted_expense: # deleted income
                 data["data"]["balance"]-=deleted_amount
                 data["analytics"]["monthly_summary"]["income"]-=deleted_amount
             write_json(f"data/users/{user}.json",data)
@@ -777,7 +785,7 @@ def main_ui(username,theme,login,remember):
     settings.pack(pady=10,padx=10,fill="x",side="bottom")
     #################################################################################################
     global topbar
-    topbar=ctk.CTkFrame(root,height=50,border_color=BLUE_BORDER,fg_color=(LIGHT["frame"],DARK["frame"]))
+    topbar=ctk.CTkFrame(root,height=50,border_color=BLUE_BORDER,fg_color=(LIGHT["frame"],DARK["frame"]),corner_radius=0)
     topbar.pack(side="top",fill="x")
     topbar.pack_propagate(False)
 
@@ -787,5 +795,15 @@ def main_ui(username,theme,login,remember):
     content_frame.pack(expand=True,fill="both",padx=20,pady=20)
 
     Dashboard(content_frame,username)
+
+    # keybinds
+    root.bind("<Control-b>", lambda e: budget_tab(content_frame, username))
+    root.bind("<Control-t>", lambda e: transactions_tab(content_frame, username))
+    root.bind("<Control-d>", lambda e: Dashboard(content_frame, username))
+    root.bind("<Control-w>", lambda e: [root.quit(), root.after(10, quit())])
+    root.bind("<Control-B>", lambda e: budget_tab(content_frame, username))
+    root.bind("<Control-T>", lambda e: transactions_tab(content_frame, username))
+    root.bind("<Control-D>", lambda e: Dashboard(content_frame, username))
+    root.bind("<Control-W>", lambda e: [root.quit(), root.after(10, quit())])
 
     root.mainloop()
